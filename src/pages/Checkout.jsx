@@ -4,7 +4,7 @@ import { Icon } from '../components/Icons.jsx'
 import { useCart } from '../cart.jsx'
 import { formatVND, PLACEHOLDER } from '../utils.js'
 import { PROVINCES } from '../data/provinces.js'
-import { ORDER_ENDPOINT, KOL, COMPANY } from '../config.js'
+import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL } from '../config.js'
 
 const PAY_METHODS = [
   { id: 'COD', emoji: '💵', title: 'Thanh toán khi nhận hàng (COD)', desc: 'Thanh toán tiền mặt khi nhận sản phẩm' },
@@ -32,13 +32,15 @@ export default function Checkout() {
 
   const set = (k) => (e) => { setF((s) => ({ ...s, [k]: e.target.value })); setErrors((er) => ({ ...er, [k]: '' })) }
 
-  // Gửi đơn với retry + kiểm tra phản hồi thật từ Apps Script
+  // Gửi đơn với retry + kiểm tra phản hồi thật.
+  // Serverless cùng domain (/api/...) -> gửi JSON. Apps Script (khác domain) -> text/plain để tránh preflight.
+  const sameOrigin = ORDER_ENDPOINT.startsWith('/')
   async function postOrder(payload, tries = 3) {
     for (let i = 0; i < tries; i++) {
       try {
         const r = await fetch(ORDER_ENDPOINT, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          headers: { 'Content-Type': sameOrigin ? 'application/json' : 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload),
           redirect: 'follow',
         })
@@ -241,10 +243,17 @@ export default function Checkout() {
           {failed && (
             <div className="co-fail">
               <b>⚠️ Chưa gửi được đơn tự động.</b>
-              <span>Đừng lo, giỏ hàng của bạn vẫn được giữ. Vui lòng bấm <b>Thử lại</b> hoặc gọi ngay hotline để được chốt đơn:</span>
-              <a href={`tel:${COMPANY.hotline.replace(/\s/g, '')}`} className="btn btn-primary btn-block" style={{ marginTop: 4 }}>
-                <Icon name="phone" size={17} /> Gọi {COMPANY.hotline}
-              </a>
+              <span>Đừng lo, giỏ hàng của bạn vẫn được giữ. Vui lòng bấm <b>Thử lại</b>, hoặc liên hệ ngay để được chốt đơn:</span>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <a href={`tel:${COMPANY.hotline.replace(/\s/g, '')}`} className="btn btn-primary" style={{ flex: 1 }}>
+                  <Icon name="phone" size={16} /> Gọi hotline
+                </a>
+                {ZALO_URL && (
+                  <a href={ZALO_URL} target="_blank" rel="noreferrer" className="btn btn-zalo" style={{ flex: 1 }}>
+                    <Icon name="mail" size={16} /> Chat Zalo
+                  </a>
+                )}
+              </div>
             </div>
           )}
 
@@ -252,6 +261,15 @@ export default function Checkout() {
             {submitting ? 'Đang gửi đơn...' : failed ? <>Thử lại đặt hàng <Icon name="arrow" size={18} /></> : <>Đặt hàng ngay <Icon name="arrow" size={18} /></>}
           </button>
           <div className="trust-row"><Icon name="shield" size={15} /> Thông tin của bạn được bảo mật an toàn</div>
+
+          {ZALO_URL && (
+            <div className="co-help">
+              Cần hỗ trợ đặt hàng?
+              <a href={ZALO_URL} target="_blank" rel="noreferrer" className="co-zalo-link">Chat Zalo</a>
+              <span>·</span>
+              <a href={`tel:${COMPANY.hotline.replace(/\s/g, '')}`} className="co-zalo-link">{COMPANY.hotline}</a>
+            </div>
+          )}
         </div>
       </form>
     </div>

@@ -16,6 +16,10 @@
 
 var SHEET_NAME = 'Đơn KOL';
 
+// Email nhận thông báo. Để '' nếu không muốn nhận mail.
+var ALERT_EMAIL = '';        // vd 'admin@k-homes.vn'
+var NOTIFY_ALL = true;       // true: gửi mail mọi đơn | false: chỉ gửi khi ghi lỗi
+
 var HEADERS = [
   'Thời gian', 'Mã đơn', 'KOL', 'Khách hàng', 'SĐT', 'Email',
   'Tỉnh/Thành', 'Địa chỉ', 'Sản phẩm', 'SL', 'Tạm tính',
@@ -83,12 +87,26 @@ function doPost(e) {
       'Mới'
     ]);
 
+    if (ALERT_EMAIL && NOTIFY_ALL) {
+      notify_('🛒 Đơn KOL mới ' + (data.orderCode || ''),
+        'Khách: ' + (c.name || '') + ' - ' + (c.phone || '') + '\n' +
+        (c.province || '') + ' | ' + (c.address || '') + '\n\n' + items +
+        '\n\nTổng: ' + (data.total || 0).toLocaleString('vi-VN') + 'đ\nThanh toán: ' + (data.payment || ''));
+    }
     return json_({ ok: true, orderCode: data.orderCode });
   } catch (err) {
+    if (ALERT_EMAIL) {
+      notify_('⚠️ LỖI ghi đơn KOL ' + (data.orderCode || ''),
+        'Không ghi được đơn vào Sheet, hãy nhập tay:\n\n' + (e && e.postData ? e.postData.contents : '') + '\n\nLỗi: ' + String(err));
+    }
     return json_({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
   }
+}
+
+function notify_(subject, body) {
+  try { MailApp.sendEmail(ALERT_EMAIL, subject, body); } catch (e) { /* bỏ qua lỗi gửi mail */ }
 }
 
 function doGet() {

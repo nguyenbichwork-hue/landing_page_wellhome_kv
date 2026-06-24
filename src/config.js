@@ -6,12 +6,15 @@ export const KOL = {
   campaign: 'Tefal x Khánh Vân 2026',
 }
 
-// URL Google Apps Script Web App nhận đơn hàng và ghi vào Google Sheet.
-// >>> Sau khi deploy Apps Script (xem apps-script/Code.gs), dán URL /exec vào đây
-//     hoặc đặt biến môi trường VITE_ORDER_ENDPOINT khi build trên Vercel.
+// Nơi nhận đơn hàng. Mặc định dùng serverless cùng domain (/api/order) -> ổn định khi đông đơn.
+// Có thể đổi sang URL Apps Script bằng biến môi trường VITE_ORDER_ENDPOINT khi build.
 export const ORDER_ENDPOINT =
-  import.meta.env.VITE_ORDER_ENDPOINT ||
-  'https://script.google.com/macros/s/PASTE_YOUR_DEPLOYMENT_ID/exec'
+  import.meta.env.VITE_ORDER_ENDPOINT || '/api/order'
+
+// Kênh chat dự phòng để chốt đơn (hiện ở trang thanh toán).
+// >>> Thay bằng link Zalo OA / số Zalo thật của shop. Để trống ('') sẽ ẩn nút.
+export const ZALO_URL =
+  import.meta.env.VITE_ZALO_URL || 'https://zalo.me/0901234567'
 
 // Thông tin công ty (hiển thị footer + trang liên hệ)
 export const COMPANY = {

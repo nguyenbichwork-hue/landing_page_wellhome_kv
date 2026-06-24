@@ -55,35 +55,54 @@ nhưng vẫn mua được — bạn có thể bổ sung ảnh thủ công sau.
 
 ## 3. Kết nối Google Sheet ghi đơn KOL (BẮT BUỘC để nhận đơn)
 
-1. Tạo (hoặc mở) Google Sheet dùng để thống kê đơn KOL.
-2. Vào **Tiện ích mở rộng → Apps Script**.
-3. Dán toàn bộ nội dung file `apps-script/Code.gs` vào, **Lưu**.
-4. Chọn hàm `setupHeaders` → **Run** một lần (cấp quyền khi được hỏi) để tạo dòng tiêu đề.
-5. Bấm **Deploy → New deployment → Web app**:
-   - *Execute as*: **Me**
-   - *Who has access*: **Anyone**
-6. Copy **URL dạng `.../exec`**.
-7. Dán URL đó vào một trong hai nơi:
-   - `src/config.js` → biến `ORDER_ENDPOINT`, **hoặc**
-   - Biến môi trường `VITE_ORDER_ENDPOINT` trên Vercel (khuyến nghị).
+Web ghi đơn qua **serverless `api/order.js` ngay trên Vercel** (cùng domain, không lỗi CORS,
+chịu tải tốt khi đông đơn). Cần một **Service Account** của Google để ghi vào Sheet:
 
-Từ đó, mỗi đơn khách đặt sẽ tự thêm 1 dòng vào Sheet: thời gian, mã đơn, KOL, khách hàng, SĐT,
-địa chỉ, sản phẩm, số lượng, tổng tiền, phương thức thanh toán, trạng thái...
+1. **Tạo Service Account** (làm 1 lần):
+   - Vào https://console.cloud.google.com → tạo project (hoặc dùng project có sẵn).
+   - Bật **Google Sheets API** (APIs & Services → Enable APIs → Google Sheets API).
+   - IAM & Admin → **Service Accounts** → *Create* → tạo xong vào **Keys → Add key → JSON** để tải file key.
+   - Mở file JSON, lấy 2 giá trị: `client_email` và `private_key`.
+2. **Chuẩn bị Sheet**:
+   - Tạo Google Sheet thống kê đơn, thêm 1 tab tên **`Đơn KOL`**.
+   - **Chia sẻ Sheet** cho `client_email` ở trên với quyền **Editor**.
+   - Lấy **SHEET_ID** từ URL: `docs.google.com/spreadsheets/d/`**`<SHEET_ID>`**`/edit`.
+3. **Đặt biến môi trường trên Vercel** (Settings → Environment Variables):
+
+   | Biến | Bắt buộc | Giá trị |
+   |---|---|---|
+   | `SHEET_ID` | ✅ | ID của Google Sheet |
+   | `GOOGLE_SA_EMAIL` | ✅ | `client_email` trong file JSON |
+   | `GOOGLE_SA_PRIVATE_KEY` | ✅ | `private_key` (dán nguyên, gồm cả `\n`) |
+   | `SHEET_TAB` | — | Tên tab, mặc định `Đơn KOL` |
+   | `ALERT_EMAIL` | — | Email nhận cảnh báo khi ghi đơn lỗi |
+   | `RESEND_API_KEY` | — | API key [Resend](https://resend.com) để gửi email cảnh báo |
+   | `NOTIFY_ALL` | — | `1` để nhận email cho **mọi** đơn |
+
+4. Redeploy. Xong — mỗi đơn tự thêm 1 dòng vào Sheet; nếu ghi lỗi sẽ gửi email cảnh báo kèm chi tiết đơn để nhập tay.
+
+> **Phương án thay thế (không cần Service Account / API key):** dùng **Apps Script** trong `apps-script/Code.gs`
+> — dán vào Sheet → đặt `ALERT_EMAIL` ở đầu file → Deploy Web app (Anyone) → copy URL `.../exec`
+> → đặt biến `VITE_ORDER_ENDPOINT = <URL exec>` trên Vercel. Apps Script gửi email qua chính Gmail của bạn (không cần Resend).
+> Đổi lại: chịu tải kém hơn serverless khi nhiều đơn dồn dập.
+
+### Nút Zalo / chat ở trang thanh toán
+Sửa link Zalo thật của shop qua biến `VITE_ZALO_URL` (hoặc `ZALO_URL` trong `src/config.js`),
+ví dụ `https://zalo.me/0901234567`. Để trống sẽ ẩn nút.
 
 ---
 
 ## 4. Triển khai lên Vercel + subdomain
 
-1. Push code lên GitHub (hoặc dùng Vercel CLI: `vercel`).
-2. Trên Vercel: **Import Project** → framework tự nhận **Vite**.
-3. **Settings → Environment Variables**: thêm `VITE_ORDER_ENDPOINT` = URL Apps Script ở bước 3.
-4. Deploy. (`vercel.json` đã cấu hình rewrite cho SPA — các trang con không bị 404 khi F5.)
+1. Push code lên GitHub (đã có sẵn) hoặc `vercel --prod`.
+2. Trên Vercel: project tự nhận **Vite** + serverless trong thư mục `api/`.
+3. **Settings → Environment Variables**: thêm các biến ở mục 3 (và `VITE_ZALO_URL`).
+4. Deploy. (`vercel.json` rewrite SPA nhưng **chừa `/api/`** cho serverless.)
 5. **Settings → Domains**: thêm `khanhvan.wellhome.asia`.
-6. Tại nhà cung cấp DNS của `wellhome.asia`, thêm bản ghi:
+6. DNS của `wellhome.asia` thêm bản ghi:
    ```
    CNAME   khanhvan   →   cname.vercel-dns.com
    ```
-   Chờ DNS cập nhật là xong.
 
 ---
 

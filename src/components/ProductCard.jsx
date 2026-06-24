@@ -12,12 +12,12 @@ export default function ProductCard({ product, onOpen }) {
         {product.discountPct > 0 && (
           <div className="disc-badge">-{product.discountPct}%<small>GIẢM</small></div>
         )}
-        {isHot && <div className="hot-badge"><Icon name="spark" size={12} /> DEAL SỐC</div>}
         <img src={productImage(product)} alt={product.name} loading="lazy" />
         <div className="card-quick">Xem nhanh sản phẩm</div>
       </div>
       <div className="card-body">
         <div className="card-cat">{categoryLabel(product.category)}</div>
+        {isHot && <span className="deal-tag"><Icon name="spark" size={11} /> Deal sốc</span>}
         <h3 className="card-title">{product.name}</h3>
         <div className="card-foot">
           <div className="price-wrap">
