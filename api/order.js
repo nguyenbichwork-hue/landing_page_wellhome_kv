@@ -114,6 +114,22 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true, message: 'Đã ghi tiêu đề cột vào tab ' + TAB, headers: HEADERS })
       } catch (e) { return res.status(500).json({ ok: false, error: String(e) }) }
     }
+    // Dọn toàn bộ dữ liệu (giữ tiêu đề) — dùng 1 lần để xóa dữ liệu test.
+    if (req.query && req.query.setup === 'reset') {
+      if (!SHEET_ID || !SA_EMAIL || !SA_KEY) return res.status(500).json({ ok: false, error: 'Thiếu biến môi trường.' })
+      try {
+        const token = await getAccessToken()
+        const clr = encodeURIComponent(`${TAB}!A2:BZ100000`)
+        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${clr}:clear`,
+          { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+        const h = encodeURIComponent(`${TAB}!A1:U1`)
+        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${h}?valueInputOption=USER_ENTERED`, {
+          method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: [HEADERS] }),
+        })
+        return res.status(200).json({ ok: true, message: 'Đã dọn sạch dữ liệu & ghi lại tiêu đề.' })
+      } catch (e) { return res.status(500).json({ ok: false, error: String(e) }) }
+    }
     return res.status(200).json({ ok: true, service: 'WellHome x Tefal KOL order endpoint' })
   }
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method' })
