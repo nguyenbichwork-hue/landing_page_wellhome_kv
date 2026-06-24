@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { Icon, BrandMark } from './Icons.jsx'
 import { useCart } from '../cart.jsx'
-import { KOL, BRANDS } from '../config.js'
+import { KOL } from '../config.js'
 
 export default function Header() {
   const { count, setOpen } = useCart()
@@ -30,16 +30,6 @@ export default function Header() {
             {count > 0 && <span className="cart-badge">{count}</span>}
           </button>
         </nav>
-      </div>
-
-      <div className="brandbar">
-        <div className="wrap brandbar-inner">
-          {BRANDS.map((b, i) => (
-            <a key={b.key} href={`/#brand-${b.key.toLowerCase()}`} className={`brandtab ${i === 0 ? 'active' : ''}`}>
-              <img src={b.logo} alt={b.label} loading="lazy" />
-            </a>
-          ))}
-        </div>
       </div>
     </header>
   )

@@ -1,17 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from './Icons.jsx'
 import { BRANDS, WARRANTY } from '../config.js'
-import { productImage, PLACEHOLDER } from '../utils.js'
+import { SHOWCASE } from '../data/showcase.js'
 
-export default function Hero({ products, onOpen, goShop }) {
-  const byBrand = (k) => products.filter((p) => p.brand === k && p.images.length)
-  const brandItems = useMemo(() => BRANDS.map((b) => ({ ...b, items: byBrand(b.key) })), [products])
-  const slides = Math.min(5, Math.max(1, ...brandItems.map((b) => b.items.length || 1)))
+export default function Hero({ products, goShop }) {
+  const slides = Math.max(1, ...BRANDS.map((b) => (SHOWCASE[b.key] || []).length))
   const [slide, setSlide] = useState(0)
   const timer = useRef(null)
 
   useEffect(() => {
-    timer.current = setInterval(() => setSlide((s) => (s + 1) % slides), 3500)
+    timer.current = setInterval(() => setSlide((s) => (s + 1) % slides), 3800)
     return () => clearInterval(timer.current)
   }, [slides])
   const go = (d) => setSlide((s) => (s + d + slides) % slides)
@@ -49,14 +47,13 @@ export default function Hero({ products, onOpen, goShop }) {
 
         <div className="hero-showcase">
           <div className="hs-panels">
-            {brandItems.map((b) => {
-              const prod = b.items.length ? b.items[slide % b.items.length] : null
+            {BRANDS.map((b) => {
+              const imgs = SHOWCASE[b.key] || []
+              const src = imgs.length ? imgs[slide % imgs.length] : null
               return (
-                <div className={`hs-panel ${prod ? '' : 'empty'}`} key={b.key}
-                  onClick={() => prod && onOpen(prod)} style={{ cursor: prod ? 'pointer' : 'default' }}>
-                  <img className="hs-logo" src={b.logo} alt={b.label} />
-                  {prod
-                    ? <img className="hs-prod" src={productImage(prod)} alt={prod.name} />
+                <div className="hs-panel" key={b.key} onClick={goShop}>
+                  {src
+                    ? <img className="hs-banner" src={src} alt={b.label} />
                     : <div className="hs-soon"><img src={b.logo} alt="" /><span>Sắp ra mắt</span></div>}
                 </div>
               )
