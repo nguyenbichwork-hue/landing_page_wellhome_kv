@@ -444,6 +444,10 @@ img{display:block;max-width:100%}
   .grid2,.grid3{grid-template-columns:1fr}
   .section-head h2{font-size:24px}
   .hero-stats{gap:18px}
+  /* action bar popup: "Mua ngay" xuống hàng riêng để không bị cắt trên máy hẹp */
+  .modal-actionbar{flex-wrap:wrap;gap:8px;padding:10px 14px}
+  .modal-actionbar .btn{padding:11px 10px;font-size:14px}
+  .modal-actionbar .btn-accent{flex-basis:100%;order:3}
 }
 
 /* ============ PROMO BANNER (sale) ============ */
