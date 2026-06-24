@@ -2,12 +2,7 @@ import { useEffect, useState } from 'react'
 import { formatVND, productImage } from '../utils.js'
 import { brandLabel } from '../config.js'
 
-// Đếm ngược tới cuối tháng ("đón lương về")
-function endOfMonth() {
-  const n = new Date()
-  return new Date(n.getFullYear(), n.getMonth() + 1, 0, 23, 59, 59).getTime()
-}
-const SLOT = 4 * 3600 * 1000   // mỗi deal "lên sóng" 4 giờ rồi xoay sang SP khác trong danh sách
+const SLOT = 3 * 3600 * 1000   // mỗi deal "lên sóng" 3 giờ rồi xoay sang SP khác; đồng hồ đếm ngược trong đúng 3 giờ này
 
 export default function SaleBanner({ deals, onOpen }) {
   const [now, setNow] = useState(() => Date.now())
@@ -20,13 +15,13 @@ export default function SaleBanner({ deals, onOpen }) {
   // Deal hiện tại xoay vòng trong danh sách deals (hết lượt -> SP khác)
   const deal = deals[Math.floor(now / SLOT) % deals.length]
 
-  let diff = Math.max(0, endOfMonth() - now)
-  const d = Math.floor(diff / 86400000); diff -= d * 86400000
+  const slotEnd = (Math.floor(now / SLOT) + 1) * SLOT   // thời điểm kết thúc slot 3 giờ hiện tại
+  let diff = Math.max(0, slotEnd - now)
   const h = Math.floor(diff / 3600000); diff -= h * 3600000
   const m = Math.floor(diff / 60000); diff -= m * 60000
   const s = Math.floor(diff / 1000)
   const pad = (x) => String(x).padStart(2, '0')
-  const units = [[pad(d), 'NGÀY'], [pad(h), 'GIỜ'], [pad(m), 'PHÚT'], [pad(s), 'GIÂY']]
+  const units = [[pad(h), 'GIỜ'], [pad(m), 'PHÚT'], [pad(s), 'GIÂY']]
 
   return (
     <div className="wrap">
@@ -60,7 +55,7 @@ export default function SaleBanner({ deals, onOpen }) {
               <div className="sb-unit" key={l}>
                 <div className="sb-num">{v}</div>
                 <div className="sb-lbl">{l}</div>
-                {i < 3 && <span className="sb-colon">:</span>}
+                {i < 2 && <span className="sb-colon">:</span>}
               </div>
             ))}
           </div>
