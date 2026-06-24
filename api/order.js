@@ -79,6 +79,7 @@ async function appendRows(token, rows) {
     body: JSON.stringify({ values: rows }),
   })
   if (!r.ok) throw new Error('Sheets append lỗi ' + r.status + ': ' + (await r.text()))
+  return await r.json()
 }
 
 async function sendEmail(subject, text) {
@@ -143,7 +144,10 @@ export default async function handler(req, res) {
     if (await alreadyExists(token, data.orderCode)) {
       return res.status(200).json({ ok: true, duplicate: true, orderCode: data.orderCode })
     }
-    await appendRows(token, rows)
+    const appendResult = await appendRows(token, rows)
+    if (data.orderCode && String(data.orderCode).startsWith('DBG')) {
+      return res.status(200).json({ ok: true, orderCode: data.orderCode, debug: appendResult.updates || appendResult })
+    }
     if (NOTIFY_ALL) {
       await sendEmail(`🛒 Đơn KOL mới ${data.orderCode} — ${Number(data.total || 0).toLocaleString('vi-VN')}đ`,
         `Khách: ${c.name} - ${c.phone}\nĐịa chỉ: ${c.address || ''}\n\n${itemsText}\n\nTổng: ${Number(data.total || 0).toLocaleString('vi-VN')}đ\nThanh toán: ${data.payment} (${data.paymentStatus})`)
