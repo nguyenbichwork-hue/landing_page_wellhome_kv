@@ -104,7 +104,7 @@ export default function Home() {
       <Hero products={products} onOpen={setModal} goShop={goShop} />
 
       {/* ===== BANNER SALE SỐC + ĐẾM NGƯỢC ===== */}
-      <SaleBanner deal={banner} onOpen={setModal} />
+      <SaleBanner deals={saleProducts} onOpen={setModal} />
 
       {/* ===== SALE SẬP SÀN ===== */}
       {saleProducts.length > 0 && (

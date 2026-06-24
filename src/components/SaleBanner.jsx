@@ -2,22 +2,25 @@ import { useEffect, useState } from 'react'
 import { formatVND, productImage } from '../utils.js'
 import { brandLabel } from '../config.js'
 
-// Đếm ngược tới cuối tháng hiện tại ("đón lương về")
+// Đếm ngược tới cuối tháng ("đón lương về")
 function endOfMonth() {
   const n = new Date()
   return new Date(n.getFullYear(), n.getMonth() + 1, 0, 23, 59, 59).getTime()
 }
+const SLOT = 4 * 3600 * 1000   // mỗi deal "lên sóng" 4 giờ rồi xoay sang SP khác trong danh sách
 
-export default function SaleBanner({ deal, onOpen }) {
-  const [target] = useState(endOfMonth)
+export default function SaleBanner({ deals, onOpen }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [])
-  if (!deal) return null
+  if (!deals || !deals.length) return null
 
-  let diff = Math.max(0, target - now)
+  // Deal hiện tại xoay vòng trong danh sách deals (hết lượt -> SP khác)
+  const deal = deals[Math.floor(now / SLOT) % deals.length]
+
+  let diff = Math.max(0, endOfMonth() - now)
   const d = Math.floor(diff / 86400000); diff -= d * 86400000
   const h = Math.floor(diff / 3600000); diff -= h * 3600000
   const m = Math.floor(diff / 60000); diff -= m * 60000
