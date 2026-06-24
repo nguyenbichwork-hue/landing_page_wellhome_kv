@@ -71,7 +71,8 @@ async function alreadyExists(token, orderCode) {
 }
 
 async function appendRows(token, rows) {
-  const range = encodeURIComponent(`${TAB}!${RANGE_COLS}`)
+  // Neo vào A1 để Sheets luôn ghi bắt đầu từ cột A (tránh lỗi lệch cột khi có dòng trống).
+  const range = encodeURIComponent(`${TAB}!A1`)
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`
   const r = await fetch(url, {
     method: 'POST',
