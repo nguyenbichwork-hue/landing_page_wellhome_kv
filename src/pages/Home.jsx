@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react'
 import { useProducts } from '../useProducts.js'
 import ProductCard from '../components/ProductCard.jsx'
 import ProductModal from '../components/ProductModal.jsx'
+import Hero from '../components/Hero.jsx'
+import SaleBanner from '../components/SaleBanner.jsx'
 import { Icon } from '../components/Icons.jsx'
 import { categoryLabel, KOL, PERKS, BRANDS, WARRANTY, brandLabel } from '../config.js'
 import { formatVND, productImage } from '../utils.js'
@@ -98,53 +100,11 @@ export default function Home() {
 
   return (
     <>
-      {/* ===== PROMO BANNER ===== */}
-      <section className="promo">
-        <div className="promo-deco" aria-hidden>
-          <span className="coin c1">₫</span><span className="coin c2">₫</span><span className="coin c3">₫</span>
-        </div>
-        <div className="wrap promo-inner">
-          <div className="promo-copy">
-            <span className="promo-kol"><Icon name="spark" size={14} /> {KOL.campaign}</span>
-            <h1>SIÊU SALE GIA DỤNG<br /><span className="promo-brands">Tefal · Bosch · Smeg</span></h1>
-            <p>Chính hãng 100% — giá ưu đãi độc quyền. Giao hàng & lắp đặt <b>0đ</b>, {WARRANTY.toLowerCase()}.</p>
-            <div className="promo-perks">
-              <span><Icon name="truck" size={15} /> Freeship & lắp đặt 0đ</span>
-              <span><Icon name="shield" size={15} /> {WARRANTY}</span>
-              <span><Icon name="check" size={15} /> Chính hãng 100%</span>
-            </div>
-            <div className="promo-cta">
-              <button className="btn btn-accent btn-lg" onClick={goShop}><Icon name="bag" size={18} /> Mua sắm ngay</button>
-              <a href="#sale" className="btn btn-ghost btn-lg" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', borderColor: 'rgba(255,255,255,.4)' }}>🔥 Sale sập sàn</a>
-            </div>
-          </div>
+      {/* ===== HERO (3 hãng) ===== */}
+      <Hero products={products} onOpen={setModal} goShop={goShop} />
 
-          <div className="promo-card-wrap">
-            {banner && (
-              <div className="promo-card" onClick={() => setModal(banner)}>
-                {banner.discountPct > 0 && <div className="promo-tag">-{banner.discountPct}%</div>}
-                <img src={productImage(banner)} alt={banner.name} />
-                <div className="pc-name">{banner.name}</div>
-                <div className="pc-price">
-                  <span className="now">{formatVND(banner.kolPrice)}</span>
-                  {banner.rspPrice > banner.kolPrice && <span className="old">{formatVND(banner.rspPrice)}</span>}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== PERKS ===== */}
-      <div className="wrap">
-        <div className="perks">
-          {PERKS.map((p, i) => (
-            <div className={`perk b${i + 1}`} key={p.text}>
-              <span className="ic"><Icon name={p.icon} size={18} /></span>{p.text}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ===== BANNER SALE SỐC + ĐẾM NGƯỢC ===== */}
+      <SaleBanner deal={banner} onOpen={setModal} />
 
       {/* ===== SALE SẬP SÀN ===== */}
       {saleProducts.length > 0 && (

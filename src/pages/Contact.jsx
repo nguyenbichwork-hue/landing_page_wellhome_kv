@@ -17,9 +17,7 @@ export default function Contact() {
           <div className="contact-card">
             <div className="co-brand-bar">
               <BrandMark size={38} />
-              <span className="brand-logo" style={{ fontSize: 22 }}>
-                <span className="wh">WellHome</span><span className="x">×</span><span className="tf">Tefal</span>
-              </span>
+              <span style={{ fontSize: 23, fontWeight: 800, color: 'var(--navy)', letterSpacing: '-.4px' }}>WellHome</span>
             </div>
 
             <div className="contact-list">
