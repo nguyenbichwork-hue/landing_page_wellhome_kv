@@ -49,6 +49,16 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     var sh = getSheet_();
     var c = data.customer || {};
+
+    // Chống ghi trùng: nếu mã đơn đã tồn tại (khách bấm/thử lại nhiều lần) thì bỏ qua.
+    if (data.orderCode && sh.getLastRow() > 1) {
+      var codes = sh.getRange(2, 2, sh.getLastRow() - 1, 1).getValues();
+      for (var k = 0; k < codes.length; k++) {
+        if (codes[k][0] === data.orderCode) {
+          return json_({ ok: true, duplicate: true, orderCode: data.orderCode });
+        }
+      }
+    }
     var items = (data.items || []).map(function (it) {
       return it.qty + 'x ' + it.name + ' (' + it.cmmf + ') = ' + it.lineTotal.toLocaleString('vi-VN') + 'đ';
     }).join('\n');

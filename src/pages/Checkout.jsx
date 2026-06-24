@@ -26,8 +26,33 @@ export default function Checkout() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(null)
+  const [failed, setFailed] = useState(false)
+  // Sinh mã đơn 1 lần khi vào trang -> chống ghi trùng khi khách bấm/thử lại nhiều lần (idempotency)
+  const [orderCode] = useState(genOrderCode)
 
   const set = (k) => (e) => { setF((s) => ({ ...s, [k]: e.target.value })); setErrors((er) => ({ ...er, [k]: '' })) }
+
+  // Gửi đơn với retry + kiểm tra phản hồi thật từ Apps Script
+  async function postOrder(payload, tries = 3) {
+    for (let i = 0; i < tries; i++) {
+      try {
+        const r = await fetch(ORDER_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
+        })
+        if (r.ok) {
+          try { const j = await r.json(); if (j && j.ok === false) throw new Error(j.error || 'server') } catch (_) { /* phản hồi không JSON nhưng HTTP ok -> coi như nhận */ }
+          return true
+        }
+      } catch (err) {
+        console.warn(`order post attempt ${i + 1} failed`, err)
+      }
+      if (i < tries - 1) await new Promise((res) => setTimeout(res, 800 * (i + 1)))
+    }
+    return false
+  }
 
   const validate = () => {
     const er = {}
@@ -47,7 +72,7 @@ export default function Checkout() {
       return
     }
     setSubmitting(true)
-    const orderCode = genOrderCode()
+    setFailed(false)
     const payload = {
       orderCode,
       kol: KOL.name,
@@ -67,21 +92,17 @@ export default function Checkout() {
       source: 'khanhvan.wellhome.asia',
     }
 
-    try {
-      await fetch(ORDER_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
-        redirect: 'follow',
-      })
-    } catch (err) {
-      // Đơn vẫn được ghi nhận phía client; lỗi mạng không chặn xác nhận.
-      console.warn('order post failed', err)
-    }
-
-    setDone({ orderCode, total: payload.total, name: f.name, payment: payload.payment })
-    clear()
+    const ok = await postOrder(payload)
     setSubmitting(false)
+
+    if (ok) {
+      setDone({ orderCode, total: payload.total, name: f.name, payment: payload.payment })
+      clear()
+    } else {
+      // KHÔNG báo thành công giả. Giữ giỏ hàng để không mất đơn, hiện hotline để khách chốt đơn.
+      setFailed(true)
+      document.querySelector('.co-fail')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
   }
 
   if (done) {
@@ -217,8 +238,18 @@ export default function Checkout() {
             <div className="row total"><span>Tổng cộng</span><span className="v">{formatVND(total)}</span></div>
           </div>
 
+          {failed && (
+            <div className="co-fail">
+              <b>⚠️ Chưa gửi được đơn tự động.</b>
+              <span>Đừng lo, giỏ hàng của bạn vẫn được giữ. Vui lòng bấm <b>Thử lại</b> hoặc gọi ngay hotline để được chốt đơn:</span>
+              <a href={`tel:${COMPANY.hotline.replace(/\s/g, '')}`} className="btn btn-primary btn-block" style={{ marginTop: 4 }}>
+                <Icon name="phone" size={17} /> Gọi {COMPANY.hotline}
+              </a>
+            </div>
+          )}
+
           <button type="submit" className="btn btn-accent btn-block btn-lg" disabled={submitting} style={{ marginTop: 6 }}>
-            {submitting ? 'Đang xử lý...' : <>Đặt hàng ngay <Icon name="arrow" size={18} /></>}
+            {submitting ? 'Đang gửi đơn...' : failed ? <>Thử lại đặt hàng <Icon name="arrow" size={18} /></> : <>Đặt hàng ngay <Icon name="arrow" size={18} /></>}
           </button>
           <div className="trust-row"><Icon name="shield" size={15} /> Thông tin của bạn được bảo mật an toàn</div>
         </div>
