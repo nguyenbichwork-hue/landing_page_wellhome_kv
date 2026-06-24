@@ -2,16 +2,18 @@
 // Thông tin KOL (subdomain khanhvan.wellhome.asia)
 export const KOL = {
   name: 'Khánh Vân',
-  fullName: 'MC Nguyễn Phạm Khánh Vân',
+  fullName: 'Nguyễn Phạm Khánh Vân',
+  tagline: 'Khánh Vân PR · Truyền cảm hứng từ căn bếp gia đình',
   code: 'KHANHVAN',          // mã KOL gắn vào mỗi đơn để thống kê
   campaign: 'WellHome đồng hành cùng MC Nguyễn Phạm Khánh Vân',
 }
 
+const HSTATIC = 'https://cdn.hstatic.net/themes/200000789201/1001484515/14'
 // Các hãng bán trên trang. Thêm/sửa ở đây để hiện section + bộ lọc tương ứng.
 export const BRANDS = [
-  { key: 'TEFAL', label: 'Tefal', color: '#E2231A', tagline: 'Gia dụng nhà bếp & chăm sóc nhà cửa' },
-  { key: 'BOSCH', label: 'Bosch', color: '#E2001A', tagline: 'Thiết bị gia dụng cao cấp từ Đức' },
-  { key: 'SMEG', label: 'Smeg', color: '#0F5E3F', tagline: 'Đồ gia dụng thiết kế Ý sang trọng' },
+  { key: 'TEFAL', label: 'Tefal', color: '#E2231A', logo: `${HSTATIC}/logo_tefal.png?v=255`, tagline: 'Gia dụng nhà bếp & chăm sóc nhà cửa' },
+  { key: 'BOSCH', label: 'Bosch', color: '#E2001A', logo: `${HSTATIC}/logo_bosch.webp?v=255`, tagline: 'Thiết bị gia dụng cao cấp từ Đức' },
+  { key: 'SMEG', label: 'Smeg', color: '#0F5E3F', logo: `${HSTATIC}/logo_smeg.jpg?v=255`, tagline: 'Đồ gia dụng thiết kế Ý sang trọng' },
 ]
 
 // Bảo hành (đổi tại 1 chỗ)

@@ -163,7 +163,7 @@ export default function Home() {
       {activeBrands.map((b) => {
         const items = byBrand(b.key)
         return (
-          <section className="section brand-section" key={b.key}>
+          <section className="section brand-section" key={b.key} id={`brand-${b.key.toLowerCase()}`}>
             <div className="wrap">
               <div className="section-head">
                 <div className="brand-head">
