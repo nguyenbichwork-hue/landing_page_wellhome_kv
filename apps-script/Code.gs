@@ -20,11 +20,19 @@ var SHEET_NAME = 'Đơn KOL';
 var ALERT_EMAIL = '';        // vd 'admin@k-homes.vn'
 var NOTIFY_ALL = true;       // true: gửi mail mọi đơn | false: chỉ gửi khi ghi lỗi
 
+// 1 dòng / mỗi sản phẩm — khớp cấu trúc sheet mẫu KOL + thêm "Trạng thái thanh toán"
 var HEADERS = [
-  'Thời gian', 'Mã đơn', 'KOL', 'Khách hàng', 'SĐT', 'Email',
-  'Tỉnh/Thành', 'Địa chỉ', 'Sản phẩm', 'SL', 'Tạm tính',
-  'Tiết kiệm', 'Tổng tiền', 'Thanh toán', 'Ghi chú', 'Nguồn', 'Trạng thái'
+  'Ngày đặt hàng', 'Tên người nhận', 'Số điện thoại', 'Email', 'Shipping Street',
+  'Phường/Xã nhận hàng', 'Quận/Huyện nhận hàng', 'Tỉnh/TP nhận hàng', 'Phương thức thanh toán',
+  'Trạng thái thanh toán', 'Mã đơn hàng', 'Hãng', 'Mã sản phẩm', 'Tên sản phẩm', 'Số lượng',
+  'Giá sản phẩm', 'Số tiền giảm', 'Thành tiền', 'Tên Camp', 'Ghi chú', 'Nguồn'
 ];
+var CODE_COL = 11;           // cột "Mã đơn hàng" (K) để chống ghi trùng
+
+function fmtDate_(iso) {
+  var d = iso ? new Date(iso) : new Date();
+  return Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy HH:mm:ss');
+}
 
 function getSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -56,42 +64,33 @@ function doPost(e) {
 
     // Chống ghi trùng: nếu mã đơn đã tồn tại (khách bấm/thử lại nhiều lần) thì bỏ qua.
     if (data.orderCode && sh.getLastRow() > 1) {
-      var codes = sh.getRange(2, 2, sh.getLastRow() - 1, 1).getValues();
+      var codes = sh.getRange(2, CODE_COL, sh.getLastRow() - 1, 1).getValues();
       for (var k = 0; k < codes.length; k++) {
         if (codes[k][0] === data.orderCode) {
           return json_({ ok: true, duplicate: true, orderCode: data.orderCode });
         }
       }
     }
-    var items = (data.items || []).map(function (it) {
-      return it.qty + 'x ' + it.name + ' (' + it.cmmf + ') = ' + it.lineTotal.toLocaleString('vi-VN') + 'đ';
+    var ngay = fmtDate_(data.createdAt);
+    var list = (data.items && data.items.length) ? data.items : [{}];
+    var rows = list.map(function (it) {
+      return [
+        ngay, c.name || '', "'" + (c.phone || ''), c.email || '', c.street || '',
+        c.ward || '', c.district || '', c.province || '', data.payment || '', data.paymentStatus || '',
+        data.orderCode || '', it.brand || '', it.cmmf || '', it.name || '', it.qty || 0,
+        it.price || 0, it.discount || 0, (it.lineTotal != null ? it.lineTotal : (it.price || 0) * (it.qty || 0)),
+        data.campaign || '', c.note || '', data.source || ''
+      ];
+    });
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
+
+    var itemsText = (data.items || []).map(function (it) {
+      return it.qty + 'x ' + it.name + ' (' + it.cmmf + ')';
     }).join('\n');
-
-    sh.appendRow([
-      data.createdAt ? new Date(data.createdAt) : new Date(),
-      data.orderCode || '',
-      data.kol || '',
-      c.name || '',
-      "'" + (c.phone || ''),
-      c.email || '',
-      c.province || '',
-      c.address || '',
-      items,
-      data.itemCount || 0,
-      data.subtotal || 0,
-      data.savings || 0,
-      data.total || 0,
-      data.payment || '',
-      c.note || '',
-      data.source || '',
-      'Mới'
-    ]);
-
     if (ALERT_EMAIL && NOTIFY_ALL) {
       notify_('🛒 Đơn KOL mới ' + (data.orderCode || ''),
-        'Khách: ' + (c.name || '') + ' - ' + (c.phone || '') + '\n' +
-        (c.province || '') + ' | ' + (c.address || '') + '\n\n' + items +
-        '\n\nTổng: ' + (data.total || 0).toLocaleString('vi-VN') + 'đ\nThanh toán: ' + (data.payment || ''));
+        'Khách: ' + (c.name || '') + ' - ' + (c.phone || '') + '\nĐịa chỉ: ' + (c.address || '') + '\n\n' + itemsText +
+        '\n\nTổng: ' + (data.total || 0).toLocaleString('vi-VN') + 'đ\nThanh toán: ' + (data.payment || '') + ' (' + (data.paymentStatus || '') + ')');
     }
     return json_({ ok: true, orderCode: data.orderCode });
   } catch (err) {

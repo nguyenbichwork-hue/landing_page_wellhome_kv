@@ -7,8 +7,8 @@ import { PROVINCES } from '../data/provinces.js'
 import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL } from '../config.js'
 
 const PAY_METHODS = [
-  { id: 'COD', emoji: '💵', title: 'Thanh toán khi nhận hàng (COD)', desc: 'Thanh toán tiền mặt khi nhận sản phẩm' },
-  { id: 'BANK', emoji: '🏦', title: 'Chuyển khoản ngân hàng', desc: 'Nhân viên gửi thông tin chuyển khoản sau khi đặt' },
+  { id: 'COD', emoji: '💵', title: 'Thanh toán khi giao hàng (COD)', desc: 'Thanh toán tiền mặt khi nhận sản phẩm', status: 'Chưa thu (COD)' },
+  { id: 'BANK', emoji: '🏦', title: 'Chuyển khoản qua ngân hàng', desc: 'Nhân viên gửi thông tin chuyển khoản sau khi đặt', status: 'Chờ chuyển khoản' },
 ]
 
 function genOrderCode() {
@@ -21,7 +21,7 @@ function genOrderCode() {
 export default function Checkout() {
   const { items, total, savings, clear } = useCart()
   const navigate = useNavigate()
-  const [f, setF] = useState({ name: '', phone: '', email: '', address: '', province: '', note: '' })
+  const [f, setF] = useState({ name: '', phone: '', email: '', province: '', district: '', ward: '', street: '', note: '' })
   const [pay, setPay] = useState('COD')
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -61,8 +61,10 @@ export default function Checkout() {
     if (!f.name.trim()) er.name = 'Vui lòng nhập họ tên'
     if (!/^0\d{9,10}$/.test(f.phone.replace(/\s/g, ''))) er.phone = 'Số điện thoại không hợp lệ'
     if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) er.email = 'Email không hợp lệ'
-    if (!f.address.trim()) er.address = 'Vui lòng nhập địa chỉ'
     if (!f.province) er.province = 'Vui lòng chọn tỉnh/thành'
+    if (!f.district.trim()) er.district = 'Vui lòng nhập quận/huyện'
+    if (!f.ward.trim()) er.ward = 'Vui lòng nhập phường/xã'
+    if (!f.street.trim()) er.street = 'Vui lòng nhập số nhà, tên đường'
     setErrors(er)
     return Object.keys(er).length === 0
   }
@@ -75,16 +77,26 @@ export default function Checkout() {
     }
     setSubmitting(true)
     setFailed(false)
+    const method = PAY_METHODS.find((m) => m.id === pay)
+    const fullAddress = [f.street, f.ward, f.district, f.province].filter(Boolean).join(', ')
     const payload = {
       orderCode,
       kol: KOL.name,
       kolCode: KOL.code,
+      campaign: KOL.campaign,
       createdAt: new Date().toISOString(),
-      customer: { ...f, phone: f.phone.replace(/\s/g, '') },
-      payment: PAY_METHODS.find((m) => m.id === pay)?.title,
+      customer: {
+        name: f.name, phone: f.phone.replace(/\s/g, ''), email: f.email,
+        street: f.street, ward: f.ward, district: f.district, province: f.province,
+        address: fullAddress, note: f.note,
+      },
+      payment: method?.title,
       paymentCode: pay,
+      paymentStatus: method?.status,
       items: items.map((it) => ({
-        cmmf: it.cmmf, name: it.name, price: it.price, qty: it.qty, lineTotal: it.price * it.qty,
+        cmmf: it.cmmf, name: it.name, brand: it.brand || 'TEFAL',
+        price: it.price, qty: it.qty, lineTotal: it.price * it.qty,
+        discount: Math.max(0, (it.rsp || 0) - it.price) * it.qty,
         variantId: it.variantId,
       })),
       itemCount: items.reduce((s, x) => s + x.qty, 0),
@@ -176,19 +188,32 @@ export default function Checkout() {
               </div>
             </div>
 
-            <div className={`field ${errors.province ? 'err' : ''}`}>
-              <label>Tỉnh / Thành phố <span className="req">*</span></label>
-              <select value={f.province} onChange={set('province')}>
-                <option value="">— Chọn tỉnh / thành —</option>
-                {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-              {errors.province && <div className="msg">{errors.province}</div>}
+            <div className="grid2">
+              <div className={`field ${errors.province ? 'err' : ''}`}>
+                <label>Tỉnh / Thành phố <span className="req">*</span></label>
+                <select value={f.province} onChange={set('province')}>
+                  <option value="">— Chọn tỉnh / thành —</option>
+                  {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+                {errors.province && <div className="msg">{errors.province}</div>}
+              </div>
+              <div className={`field ${errors.district ? 'err' : ''}`}>
+                <label>Quận / Huyện <span className="req">*</span></label>
+                <input value={f.district} onChange={set('district')} placeholder="VD: TP. Thủ Đức" />
+                {errors.district && <div className="msg">{errors.district}</div>}
+              </div>
             </div>
 
-            <div className={`field ${errors.address ? 'err' : ''}`}>
-              <label>Địa chỉ nhận hàng <span className="req">*</span></label>
-              <input value={f.address} onChange={set('address')} placeholder="Số nhà, đường, phường/xã, quận/huyện" />
-              {errors.address && <div className="msg">{errors.address}</div>}
+            <div className={`field ${errors.ward ? 'err' : ''}`}>
+              <label>Phường / Xã <span className="req">*</span></label>
+              <input value={f.ward} onChange={set('ward')} placeholder="VD: Phường Hiệp Bình Chánh" />
+              {errors.ward && <div className="msg">{errors.ward}</div>}
+            </div>
+
+            <div className={`field ${errors.street ? 'err' : ''}`}>
+              <label>Số nhà, tên đường <span className="req">*</span></label>
+              <input value={f.street} onChange={set('street')} placeholder="VD: 1014 Phạm Văn Đồng" />
+              {errors.street && <div className="msg">{errors.street}</div>}
             </div>
 
             <div className="field">

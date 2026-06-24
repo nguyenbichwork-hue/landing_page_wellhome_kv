@@ -25,6 +25,7 @@ export function CartProvider({ children }) {
         id: product.id,
         cmmf: product.cmmf,
         name: product.name,
+        brand: product.brand,
         price: product.kolPrice,
         rsp: product.rspPrice,
         image: (product.images && product.images[0]) || '',
