@@ -1,12 +1,12 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 import Home from './pages/Home.jsx'
 import Contact from './pages/Contact.jsx'
 import Checkout from './pages/Checkout.jsx'
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import Admin from './pages/Admin.jsx'
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -15,6 +15,17 @@ function ScrollTop() {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
+  const isAdmin = pathname.startsWith('/admin')
+
+  if (isAdmin) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<Admin />} />
+      </Routes>
+    )
+  }
+
   return (
     <>
       <ScrollTop />

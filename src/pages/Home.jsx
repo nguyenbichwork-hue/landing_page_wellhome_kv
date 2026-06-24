@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react'
-import productsData from '../data/products.json'
+import { useMemo, useRef, useState } from 'react'
+import { useProducts } from '../useProducts.js'
 import ProductCard from '../components/ProductCard.jsx'
 import ProductModal from '../components/ProductModal.jsx'
 import { Icon } from '../components/Icons.jsx'
-import { useCart } from '../cart.jsx'
-import { categoryLabel, KOL, PERKS } from '../config.js'
+import { categoryLabel, KOL, PERKS, BRANDS, WARRANTY, brandLabel } from '../config.js'
 import { formatVND, productImage } from '../utils.js'
 
 const PRICE_PRESETS = [
@@ -14,8 +13,30 @@ const PRICE_PRESETS = [
   { label: 'Trên 3tr', min: 3000000, max: Infinity },
 ]
 
+const noDia = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+
+/* ---- Hàng sản phẩm cuộn ngang (cho từng hãng) ---- */
+function HScroll({ products, onOpen }) {
+  const ref = useRef(null)
+  const scroll = (dir) => ref.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
+  return (
+    <div className="hrow-wrap">
+      <button className="hrow-nav left" onClick={() => scroll(-1)} aria-label="Trước">‹</button>
+      <div className="hrow" ref={ref}>
+        {products.map((p) => (
+          <div className="hrow-item" key={p.id}><ProductCard product={p} onOpen={onOpen} /></div>
+        ))}
+      </div>
+      <button className="hrow-nav right" onClick={() => scroll(1)} aria-label="Sau">›</button>
+    </div>
+  )
+}
+
 export default function Home() {
-  const { add } = useCart()
+  const { products } = useProducts()
+  const [modal, setModal] = useState(null)
+
+  // bộ lọc cho khu "Tất cả sản phẩm"
   const [brand, setBrand] = useState('all')
   const [cat, setCat] = useState('all')
   const [preset, setPreset] = useState(null)
@@ -23,24 +44,37 @@ export default function Home() {
   const [maxP, setMaxP] = useState('')
   const [q, setQ] = useState('')
   const [sort, setSort] = useState('featured')
-  const [modal, setModal] = useState(null)
   const [filterOpen, setFilterOpen] = useState(false)
+  const allRef = useRef(null)
+
+  const byBrand = (key) => products.filter((p) => p.brand === key)
+  const activeBrands = BRANDS.filter((b) => byBrand(b.key).length > 0)
+
+  // Sale sập sàn: % giảm cao nhất trên cả 3 hãng (ưu tiên có ảnh)
+  const saleProducts = useMemo(() =>
+    [...products].filter((p) => p.discountPct > 0)
+      .sort((a, b) => (b.images.length ? 1 : 0) - (a.images.length ? 1 : 0) || b.discountPct - a.discountPct)
+      .slice(0, 12)
+  , [products])
+
+  const banner = useMemo(() =>
+    [...products].filter((p) => p.images.length).sort((a, b) => b.discountPct - a.discountPct)[0]
+  , [products])
 
   const brands = useMemo(() => {
-    const m = {}; productsData.forEach((p) => (m[p.brand] = (m[p.brand] || 0) + 1))
+    const m = {}; products.forEach((p) => (m[p.brand] = (m[p.brand] || 0) + 1))
     return Object.entries(m).sort((a, b) => b[1] - a[1])
-  }, [])
+  }, [products])
   const cats = useMemo(() => {
-    const m = {}; productsData.forEach((p) => (m[p.category] = (m[p.category] || 0) + 1))
+    const m = {}; products.forEach((p) => (m[p.category] = (m[p.category] || 0) + 1))
     return Object.entries(m).sort((a, b) => b[1] - a[1])
-  }, [])
+  }, [products])
 
   const list = useMemo(() => {
-    let r = productsData.filter((p) => {
+    let r = products.filter((p) => {
       if (brand !== 'all' && p.brand !== brand) return false
       if (cat !== 'all' && p.category !== cat) return false
-      if (q && !p.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .includes(q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))) return false
+      if (q && !noDia(p.name).includes(noDia(q))) return false
       const lo = preset ? preset.min : (minP ? +minP : 0)
       const hi = preset ? preset.max : (maxP ? +maxP : Infinity)
       if (p.kolPrice < lo || p.kolPrice > hi) return false
@@ -51,49 +85,49 @@ export default function Home() {
     else if (sort === 'discount') r = [...r].sort((a, b) => b.discountPct - a.discountPct)
     else r = [...r].sort((a, b) => (/deal/i.test(b.badge) - /deal/i.test(a.badge)) || b.discountPct - a.discountPct)
     return r
-  }, [brand, cat, preset, minP, maxP, q, sort])
-
-  const featured = useMemo(() =>
-    [...productsData].filter((p) => p.images.length).sort((a, b) => b.discountPct - a.discountPct)[0]
-  , [])
+  }, [products, brand, cat, preset, minP, maxP, q, sort])
 
   const reset = () => { setBrand('all'); setCat('all'); setPreset(null); setMinP(''); setMaxP(''); setQ('') }
   const hasFilter = brand !== 'all' || cat !== 'all' || preset || minP || maxP || q
 
+  const showBrandAll = (key) => {
+    reset(); setBrand(key)
+    setTimeout(() => allRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
+  const goShop = () => allRef.current?.scrollIntoView({ behavior: 'smooth' })
+
   return (
     <>
-      {/* HERO */}
-      <section className="hero">
-        <div className="wrap hero-inner">
-          <div className="hero-copy">
-            <span className="hero-eyebrow"><span className="dot" /> {KOL.campaign}</span>
-            <h1>Gia dụng <span className="grad">Tefal chính hãng</span><br />giá ưu đãi riêng cho bạn</h1>
-            <p className="lead">
-              Trang mua sắm độc quyền của KOL <b>{KOL.name}</b> cùng WellHome. Sản phẩm chính hãng 100%,
-              giá tốt nhất — giao hàng & lắp đặt 0đ, bảo hành 2 năm.
-            </p>
-            <div className="hero-cta">
-              <a href="#san-pham" className="btn btn-primary btn-lg"><Icon name="bag" size={18} /> Mua sắm ngay</a>
-              <a href="#san-pham" className="btn btn-ghost btn-lg">Xem ưu đãi sốc</a>
+      {/* ===== PROMO BANNER ===== */}
+      <section className="promo">
+        <div className="promo-deco" aria-hidden>
+          <span className="coin c1">₫</span><span className="coin c2">₫</span><span className="coin c3">₫</span>
+        </div>
+        <div className="wrap promo-inner">
+          <div className="promo-copy">
+            <span className="promo-kol"><Icon name="spark" size={14} /> {KOL.campaign}</span>
+            <h1>SIÊU SALE GIA DỤNG<br /><span className="promo-brands">Tefal · Bosch · Smeg</span></h1>
+            <p>Chính hãng 100% — giá ưu đãi độc quyền. Giao hàng & lắp đặt <b>0đ</b>, {WARRANTY.toLowerCase()}.</p>
+            <div className="promo-perks">
+              <span><Icon name="truck" size={15} /> Freeship & lắp đặt 0đ</span>
+              <span><Icon name="shield" size={15} /> {WARRANTY}</span>
+              <span><Icon name="check" size={15} /> Chính hãng 100%</span>
             </div>
-            <div className="hero-stats">
-              <div className="s"><b>{productsData.length}+</b><span>Sản phẩm ưu đãi</span></div>
-              <div className="s"><b>2 năm</b><span>Bảo hành chính hãng</span></div>
-              <div className="s"><b>0đ</b><span>Giao & lắp đặt</span></div>
+            <div className="promo-cta">
+              <button className="btn btn-accent btn-lg" onClick={goShop}><Icon name="bag" size={18} /> Mua sắm ngay</button>
+              <a href="#sale" className="btn btn-ghost btn-lg" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', borderColor: 'rgba(255,255,255,.4)' }}>🔥 Sale sập sàn</a>
             </div>
           </div>
 
-          <div className="hero-visual">
-            <div className="sun" />
-            <div className="wave" />
-            {featured && (
-              <div className="hero-card" onClick={() => setModal(featured)} style={{ cursor: 'pointer' }}>
-                {featured.discountPct > 0 && <div className="tag">-{featured.discountPct}%</div>}
-                <img src={productImage(featured)} alt={featured.name} />
-                <div className="t">{featured.name}</div>
-                <div>
-                  <span className="price">{formatVND(featured.kolPrice)}</span>
-                  {featured.rspPrice > featured.kolPrice && <span className="old">{formatVND(featured.rspPrice)}</span>}
+          <div className="promo-card-wrap">
+            {banner && (
+              <div className="promo-card" onClick={() => setModal(banner)}>
+                {banner.discountPct > 0 && <div className="promo-tag">-{banner.discountPct}%</div>}
+                <img src={productImage(banner)} alt={banner.name} />
+                <div className="pc-name">{banner.name}</div>
+                <div className="pc-price">
+                  <span className="now">{formatVND(banner.kolPrice)}</span>
+                  {banner.rspPrice > banner.kolPrice && <span className="old">{formatVND(banner.rspPrice)}</span>}
                 </div>
               </div>
             )}
@@ -101,7 +135,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PERKS */}
+      {/* ===== PERKS ===== */}
       <div className="wrap">
         <div className="perks">
           {PERKS.map((p, i) => (
@@ -112,19 +146,55 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PRODUCTS */}
-      <section className="section" id="san-pham">
+      {/* ===== SALE SẬP SÀN ===== */}
+      {saleProducts.length > 0 && (
+        <section className="section sale-section" id="sale">
+          <div className="wrap">
+            <div className="sale-head">
+              <div className="sale-title">🔥 SALE SẬP SÀN <span>Giảm sốc nhất hôm nay</span></div>
+              <button className="sale-allbtn" onClick={goShop}>Xem tất cả <Icon name="arrow" size={15} /></button>
+            </div>
+            <HScroll products={saleProducts} onOpen={setModal} />
+          </div>
+        </section>
+      )}
+
+      {/* ===== TỪNG HÃNG ===== */}
+      {activeBrands.map((b) => {
+        const items = byBrand(b.key)
+        return (
+          <section className="section brand-section" key={b.key}>
+            <div className="wrap">
+              <div className="section-head">
+                <div className="brand-head">
+                  <span className="brand-chip" style={{ '--bc': b.color }}>{b.label}</span>
+                  <div>
+                    <h2>{b.label}</h2>
+                    <p>{b.tagline}</p>
+                  </div>
+                </div>
+                <button className="btn btn-ghost" onClick={() => showBrandAll(b.key)}>
+                  Xem tất cả {items.length} SP <Icon name="arrow" size={15} />
+                </button>
+              </div>
+              <HScroll products={items.slice(0, 8)} onOpen={setModal} />
+            </div>
+          </section>
+        )
+      })}
+
+      {/* ===== TẤT CẢ SẢN PHẨM ===== */}
+      <section className="section" id="san-pham" ref={allRef}>
         <div className="wrap">
           <div className="section-head">
             <div>
               <h2>Tất cả sản phẩm</h2>
-              <p>Chọn lọc các sản phẩm Tefal tốt nhất với giá ưu đãi KOL</p>
+              <p>Lọc theo hãng, nhóm sản phẩm và mức giá</p>
             </div>
             <span className="count-pill">{list.length} sản phẩm</span>
           </div>
 
           <div className="layout">
-            {/* FILTERS */}
             {filterOpen && <div className="filter-backdrop" onClick={() => setFilterOpen(false)} />}
             <aside className={`filters ${filterOpen ? 'open' : ''}`}>
               <h3><Icon name="filter" size={17} /> Bộ lọc</h3>
@@ -133,11 +203,11 @@ export default function Home() {
                 <div className="lbl">Hãng</div>
                 <div className="chip-list">
                   <button className={`chip ${brand === 'all' ? 'active' : ''}`} onClick={() => setBrand('all')}>
-                    Tất cả hãng <span className="n">{productsData.length}</span>
+                    Tất cả hãng <span className="n">{products.length}</span>
                   </button>
-                  {brands.map(([b, n]) => (
-                    <button key={b} className={`chip ${brand === b ? 'active' : ''}`} onClick={() => setBrand(b)}>
-                      {b} <span className="n">{n}</span>
+                  {brands.map(([bk, n]) => (
+                    <button key={bk} className={`chip ${brand === bk ? 'active' : ''}`} onClick={() => setBrand(bk)}>
+                      {brandLabel(bk)} <span className="n">{n}</span>
                     </button>
                   ))}
                 </div>
@@ -147,7 +217,7 @@ export default function Home() {
                 <div className="lbl">Nhóm sản phẩm</div>
                 <div className="chip-list">
                   <button className={`chip ${cat === 'all' ? 'active' : ''}`} onClick={() => setCat('all')}>
-                    Tất cả nhóm <span className="n">{productsData.length}</span>
+                    Tất cả nhóm <span className="n">{products.length}</span>
                   </button>
                   {cats.map(([c, n]) => (
                     <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>
@@ -160,18 +230,14 @@ export default function Home() {
               <div className="fgroup">
                 <div className="lbl">Khoảng giá</div>
                 <div className="price-inputs">
-                  <input type="number" placeholder="Từ" value={minP}
-                    onChange={(e) => { setMinP(e.target.value); setPreset(null) }} />
+                  <input type="number" placeholder="Từ" value={minP} onChange={(e) => { setMinP(e.target.value); setPreset(null) }} />
                   <span>—</span>
-                  <input type="number" placeholder="Đến" value={maxP}
-                    onChange={(e) => { setMaxP(e.target.value); setPreset(null) }} />
+                  <input type="number" placeholder="Đến" value={maxP} onChange={(e) => { setMaxP(e.target.value); setPreset(null) }} />
                 </div>
                 <div className="price-presets">
                   {PRICE_PRESETS.map((p) => (
                     <button key={p.label} className={preset === p ? 'active' : ''}
-                      onClick={() => { setPreset(preset === p ? null : p); setMinP(''); setMaxP('') }}>
-                      {p.label}
-                    </button>
+                      onClick={() => { setPreset(preset === p ? null : p); setMinP(''); setMaxP('') }}>{p.label}</button>
                   ))}
                 </div>
               </div>
@@ -179,7 +245,6 @@ export default function Home() {
               {hasFilter && <button className="clear-filters" onClick={reset}>✕ Xóa tất cả bộ lọc</button>}
             </aside>
 
-            {/* GRID */}
             <div>
               <div className="toolbar">
                 <button className="btn btn-ghost filter-toggle" onClick={() => setFilterOpen(true)}>

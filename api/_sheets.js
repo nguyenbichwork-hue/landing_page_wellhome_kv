@@ -71,3 +71,87 @@ export async function markPaid(token, rowNumbers, note) {
   })
   if (!r.ok) throw new Error('update ' + r.status + ': ' + (await r.text()))
 }
+
+// ===== KHO SẢN PHẨM (tab "Sản phẩm") =====
+export const PROD_TAB = process.env.PRODUCT_TAB || 'Sản phẩm'
+export const PROD_HEADERS = ['id', 'brand', 'name', 'category', 'rspPrice', 'kolPrice', 'discountPct',
+  'stock', 'badge', 'haravanId', 'handle', 'variantId', 'images', 'descriptionHtml', 'matched', 'active']
+
+const rowToProduct = (r) => ({
+  id: r[0], brand: (r[1] || 'TEFAL'), name: r[2], category: r[3],
+  rspPrice: +r[4] || 0, kolPrice: +r[5] || 0, discountPct: +r[6] || 0, stock: +r[7] || 0,
+  badge: r[8] || '', haravanId: r[9] || null, handle: r[10] || null, variantId: r[11] || null,
+  images: (r[12] || '').split('|').filter(Boolean), descriptionHtml: r[13] || '',
+  matched: String(r[14]) !== 'false', active: String(r[15] || 'true') !== 'false',
+})
+const productToRow = (p) => [
+  p.id || p.cmmf, (p.brand || 'TEFAL').toUpperCase(), p.name || '', p.category || '',
+  +p.rspPrice || 0, +p.kolPrice || 0, +p.discountPct || 0, +p.stock || 0, p.badge || '',
+  p.haravanId || '', p.handle || '', p.variantId || '',
+  (Array.isArray(p.images) ? p.images.join('|') : (p.images || '')), p.descriptionHtml || '',
+  p.matched === false ? 'false' : 'true', p.active === false ? 'false' : 'true',
+]
+
+export async function ensureProductHeaders(token) {
+  const range = encodeURIComponent(`${PROD_TAB}!A1:P1`)
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`, {
+    method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values: [PROD_HEADERS] }),
+  })
+  if (!r.ok) throw new Error('header lỗi ' + r.status + ': ' + (await r.text()))
+}
+
+// Đọc toàn bộ SP. all=true để lấy cả SP đã ẩn (cho admin).
+export async function readProducts(token, all = false) {
+  const range = encodeURIComponent(`${PROD_TAB}!A2:P`)
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}`,
+    { headers: { Authorization: `Bearer ${token}` } })
+  if (!r.ok) {
+    if (r.status === 400) return []   // tab chưa tồn tại
+    throw new Error('read SP lỗi ' + r.status)
+  }
+  const vals = (await r.json()).values || []
+  return vals.filter((row) => row[0]).map(rowToProduct).filter((p) => all || p.active)
+}
+
+// Thêm/cập nhật danh sách SP (khớp theo id). Trả {added, updated}.
+export async function upsertProducts(token, products) {
+  await ensureProductHeaders(token)
+  const idRange = encodeURIComponent(`${PROD_TAB}!A2:A`)
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${idRange}`,
+    { headers: { Authorization: `Bearer ${token}` } })
+  const ids = (r.ok ? (await r.json()).values || [] : [])
+  const idToRow = {}; ids.forEach((x, i) => { if (x[0]) idToRow[String(x[0])] = i + 2 })
+  let nextRow = 2 + ids.length
+  const data = []; let added = 0, updated = 0
+  for (const p of products) {
+    const key = String(p.id || p.cmmf)
+    const row = productToRow(p)
+    const at = idToRow[key]
+    if (at) { data.push({ range: `${PROD_TAB}!A${at}:P${at}`, values: [row] }); updated++ }
+    else { data.push({ range: `${PROD_TAB}!A${nextRow}:P${nextRow}`, values: [row] }); idToRow[key] = nextRow; nextRow++; added++ }
+  }
+  if (data.length) {
+    const u = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchUpdate`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data }),
+    })
+    if (!u.ok) throw new Error('upsert lỗi ' + u.status + ': ' + (await u.text()))
+  }
+  return { added, updated }
+}
+
+// Ẩn (xóa mềm) 1 SP theo id.
+export async function setProductActive(token, id, active) {
+  const idRange = encodeURIComponent(`${PROD_TAB}!A2:A`)
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${idRange}`,
+    { headers: { Authorization: `Bearer ${token}` } })
+  const ids = (r.ok ? (await r.json()).values || [] : [])
+  let row = -1; ids.forEach((x, i) => { if (String(x[0]) === String(id)) row = i + 2 })
+  if (row < 0) return false
+  const u = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(`${PROD_TAB}!P${row}`)}?valueInputOption=RAW`, {
+    method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values: [[active ? 'true' : 'false']] }),
+  })
+  return u.ok
+}

@@ -11,7 +11,7 @@ export default function Footer() {
             <BrandMark size={32} />
             WellHome <span style={{ color: '#7DD3FC', fontWeight: 500, fontSize: 18 }}>×</span> <span style={{ color: '#FF6B5E' }}>Tefal</span>
           </div>
-          <p>Trang mua sắm chính thức của KOL <b style={{ color: '#fff' }}>{KOL.name}</b> — đồ gia dụng Tefal chính hãng với giá ưu đãi độc quyền. Hợp tác minh bạch cùng WellHome Việt Nam.</p>
+          <p><b style={{ color: '#fff' }}>WellHome đồng hành cùng {KOL.fullName}</b> — đồ gia dụng Tefal · Bosch · Smeg chính hãng với giá ưu đãi độc quyền. Hợp tác minh bạch cùng WellHome Việt Nam.</p>
           <p style={{ fontSize: 12.5, color: '#8fb0db' }}>{COMPANY.copyright}</p>
         </div>
 

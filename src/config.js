@@ -2,8 +2,25 @@
 // Thông tin KOL (subdomain khanhvan.wellhome.asia)
 export const KOL = {
   name: 'Khánh Vân',
+  fullName: 'MC Nguyễn Phạm Khánh Vân',
   code: 'KHANHVAN',          // mã KOL gắn vào mỗi đơn để thống kê
-  campaign: 'Tefal x Khánh Vân 2026',
+  campaign: 'WellHome đồng hành cùng MC Nguyễn Phạm Khánh Vân',
+}
+
+// Các hãng bán trên trang. Thêm/sửa ở đây để hiện section + bộ lọc tương ứng.
+export const BRANDS = [
+  { key: 'TEFAL', label: 'Tefal', color: '#E2231A', tagline: 'Gia dụng nhà bếp & chăm sóc nhà cửa' },
+  { key: 'BOSCH', label: 'Bosch', color: '#E2001A', tagline: 'Thiết bị gia dụng cao cấp từ Đức' },
+  { key: 'SMEG', label: 'Smeg', color: '#0F5E3F', tagline: 'Đồ gia dụng thiết kế Ý sang trọng' },
+]
+
+// Bảo hành (đổi tại 1 chỗ)
+export const WARRANTY = 'Bảo hành 2-3 năm'
+
+// Quản trị: email Google được phép đăng nhập admin + (tùy chọn) Google OAuth Client ID
+export const ADMIN = {
+  email: 'admin@khomes.com.vn',
+  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
 }
 
 // Nơi nhận đơn hàng. Mặc định dùng serverless cùng domain (/api/order) -> ổn định khi đông đơn.
@@ -51,7 +68,9 @@ export const categoryLabel = (c) => CATEGORY_LABELS[c] || c || 'Khác'
 
 // Quyền lợi cố định hiển thị trên sản phẩm
 export const PERKS = [
-  { icon: 'shield', text: 'Bảo hành 2 năm' },
+  { icon: 'shield', text: WARRANTY },
   { icon: 'truck', text: 'Giao hàng & lắp đặt 0đ' },
   { icon: 'check', text: 'Chính hãng 100%' },
 ]
+
+export const brandLabel = (k) => (BRANDS.find((b) => b.key === (k || '').toUpperCase())?.label) || k || ''
