@@ -92,7 +92,21 @@ const productToRow = (p) => [
   p.matched === false ? 'false' : 'true', p.active === false ? 'false' : 'true',
 ]
 
+export async function ensureProductTab(token) {
+  const meta = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties.title`,
+    { headers: { Authorization: `Bearer ${token}` } })
+  if (!meta.ok) return
+  const j = await meta.json()
+  const exists = (j.sheets || []).some((s) => s.properties?.title === PROD_TAB)
+  if (exists) return
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`, {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requests: [{ addSheet: { properties: { title: PROD_TAB } } }] }),
+  })
+}
+
 export async function ensureProductHeaders(token) {
+  await ensureProductTab(token)
   const range = encodeURIComponent(`${PROD_TAB}!A1:P1`)
   const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`, {
     method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
