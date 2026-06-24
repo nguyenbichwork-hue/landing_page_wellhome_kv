@@ -312,6 +312,34 @@ img{display:block;max-width:100%}
 .success .order-code{display:inline-block;background:var(--sky-100);color:var(--sky-700);font-weight:800;
   font-size:17px;padding:9px 18px;border-radius:12px;margin:14px 0 22px;letter-spacing:.5px}
 
+/* QR thanh toán chuyển khoản */
+.qr-pay{max-width:760px;margin:32px auto;background:#fff;border-radius:24px;padding:32px;box-shadow:var(--shadow)}
+.qr-head{text-align:center;margin-bottom:22px}
+.qr-head h2{font-size:24px;margin:0 0 6px;font-weight:800}
+.qr-head p{color:var(--muted);margin:0}
+.qr-grid{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.qr-left{text-align:center}
+.qr-box{width:230px;height:230px;border:3px solid var(--sky-200);border-radius:18px;padding:8px;background:#fff}
+.qr-box img{width:100%;height:100%;object-fit:contain}
+.qr-banklogos{font-size:12px;color:var(--muted);margin-top:10px;font-weight:600}
+.qr-right{display:flex;flex-direction:column;gap:2px}
+.qr-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.qr-row .ql{font-size:13.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+.qr-row .qv{font-size:15px;font-weight:700;text-align:right;display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.qcopy{width:28px;height:28px;border-radius:8px;background:var(--sky-50);color:var(--sky-600);display:grid;place-items:center;flex:none}
+.qcopy:hover{background:var(--sky-100)}
+.qr-warn{background:var(--sand);border:1px solid #F6E2B8;border-radius:12px;padding:11px 14px;font-size:12.5px;
+  color:#8a6d2f;line-height:1.5;margin-top:12px}
+.qr-status{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:22px;padding:13px;
+  background:var(--sky-50);border-radius:14px;color:var(--sky-700);font-weight:700;font-size:14.5px}
+.spin{width:18px;height:18px;border:3px solid var(--sky-200);border-top-color:var(--sky-600);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:620px){
+  .qr-grid{grid-template-columns:1fr;gap:18px;justify-items:center}
+  .qr-right{width:100%}
+  .qr-pay{padding:22px 18px}
+}
+
 /* ============ CONTACT ============ */
 .contact-hero{background:linear-gradient(160deg,#DFF3FF,#F4FBFF);padding:50px 0 40px}
 .contact-hero h1{font-size:38px;margin:0 0 10px;font-weight:800;letter-spacing:-.8px}

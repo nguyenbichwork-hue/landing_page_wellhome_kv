@@ -1,10 +1,106 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from '../components/Icons.jsx'
 import { useCart } from '../cart.jsx'
 import { formatVND, PLACEHOLDER } from '../utils.js'
 import { PROVINCES } from '../data/provinces.js'
-import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL } from '../config.js'
+import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL, BANK } from '../config.js'
+
+const transferContent = (code) => (code || '').replace(/[^a-zA-Z0-9]/g, '')
+
+// Màn hình chuyển khoản: VietQR + chi tiết TK + tự xác nhận thanh toán qua SePay
+function BankPayment({ done }) {
+  const content = transferContent(done.orderCode)
+  const qr = `https://img.vietqr.io/image/${BANK.bankBin}-${BANK.accountNo}-compact2.png`
+    + `?amount=${done.total}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(BANK.accountName)}`
+  const [paid, setPaid] = useState(false)
+  const [copied, setCopied] = useState('')
+  const timer = useRef(null)
+
+  useEffect(() => {
+    if (paid) return
+    const check = async () => {
+      try {
+        const r = await fetch(`/api/order-status?code=${encodeURIComponent(done.orderCode)}`)
+        if (r.ok) { const j = await r.json(); if (j && j.paid) setPaid(true) }
+      } catch (_) { /* bỏ qua */ }
+    }
+    timer.current = setInterval(check, 5000)
+    check()
+    return () => clearInterval(timer.current)
+  }, [paid, done.orderCode])
+
+  const copy = (val, key) => {
+    navigator.clipboard?.writeText(val).then(() => { setCopied(key); setTimeout(() => setCopied(''), 1500) })
+  }
+  const Row = ({ label, value, k }) => (
+    <div className="qr-row">
+      <span className="ql">{label}</span>
+      <span className="qv">{value}
+        <button type="button" className="qcopy" onClick={() => copy(value, k)} aria-label="Sao chép">
+          {copied === k ? <Icon name="check" size={15} /> : <Icon name="bag" size={14} />}
+        </button>
+      </span>
+    </div>
+  )
+
+  if (paid) {
+    return (
+      <div className="wrap checkout">
+        <div className="success">
+          <div className="ring"><Icon name="check" size={46} /></div>
+          <h2>Đã thanh toán thành công! 🎉</h2>
+          <p>WellHome đã nhận được chuyển khoản cho đơn <b>{done.orderCode}</b>.</p>
+          <div className="order-code">Mã đơn: {done.orderCode}</div>
+          <p>Số tiền: <b style={{ color: 'var(--tefal)', fontSize: 18 }}>{formatVND(done.total)}</b></p>
+          <p style={{ marginTop: 14 }}>Nhân viên sẽ sớm liên hệ giao hàng. Cảm ơn bạn đã mua sắm cùng KOL {KOL.name}!</p>
+          <Link to="/" className="btn btn-primary btn-lg" style={{ marginTop: 22 }}>
+            <Icon name="bag" size={18} /> Tiếp tục mua sắm
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="wrap checkout">
+      <div className="qr-pay">
+        <div className="qr-head">
+          <h2>Quét mã để thanh toán</h2>
+          <p>Đơn <b>{done.orderCode}</b> đã được ghi nhận. Vui lòng chuyển khoản để hoàn tất.</p>
+        </div>
+        <div className="qr-grid">
+          <div className="qr-left">
+            <div className="qr-box"><img src={qr} alt="VietQR thanh toán" /></div>
+            <div className="qr-banklogos">Napas 247 · MB · VietQR</div>
+          </div>
+          <div className="qr-right">
+            <Row label="Ngân hàng" value={BANK.bankName} k="bank" />
+            <Row label="Chủ tài khoản" value={BANK.accountName} k="name" />
+            <Row label="Số tài khoản" value={BANK.accountNo} k="acc" />
+            <Row label="Số tiền" value={formatVND(done.total)} k="amt" />
+            <Row label="Nội dung CK" value={content} k="ct" />
+            <div className="qr-warn">
+              ⚠️ Vui lòng <b>giữ nguyên nội dung {content}</b> khi chuyển khoản để hệ thống tự xác nhận thanh toán.
+            </div>
+          </div>
+        </div>
+        <div className="qr-status">
+          <span className="spin" /> Đang chờ thanh toán... (tự cập nhật khi nhận được tiền)
+        </div>
+        <div className="co-help" style={{ marginTop: 4 }}>
+          Đã chuyển khoản nhưng chưa cập nhật?
+          {ZALO_URL && <a href={ZALO_URL} target="_blank" rel="noreferrer" className="co-zalo-link">Chat Zalo</a>}
+          <span>·</span>
+          <a href={`tel:${COMPANY.hotline.replace(/\s/g, '')}`} className="co-zalo-link">{COMPANY.hotline}</a>
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 12 }}>
+          <Link to="/" style={{ color: 'var(--muted)', fontWeight: 600 }}>← Về trang chủ</Link>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const PAY_METHODS = [
   { id: 'COD', emoji: '💵', title: 'Thanh toán khi giao hàng (COD)', desc: 'Thanh toán tiền mặt khi nhận sản phẩm', status: 'Chưa thu (COD)' },
@@ -110,7 +206,7 @@ export default function Checkout() {
     setSubmitting(false)
 
     if (ok) {
-      setDone({ orderCode, total: payload.total, name: f.name, payment: payload.payment })
+      setDone({ orderCode, total: payload.total, name: f.name, payment: payload.payment, paymentCode: pay })
       clear()
     } else {
       // KHÔNG báo thành công giả. Giữ giỏ hàng để không mất đơn, hiện hotline để khách chốt đơn.
@@ -120,6 +216,7 @@ export default function Checkout() {
   }
 
   if (done) {
+    if (done.paymentCode === 'BANK') return <BankPayment done={done} />
     return (
       <div className="wrap checkout">
         <div className="success">

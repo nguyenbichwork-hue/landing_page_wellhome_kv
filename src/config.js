@@ -16,6 +16,15 @@ export const ORDER_ENDPOINT =
 export const ZALO_URL =
   import.meta.env.VITE_ZALO_URL || 'https://zalo.me/0901234567'
 
+// Tài khoản nhận chuyển khoản (VietQR) — đã kết nối SePay để tự xác nhận thanh toán.
+// bankBin: mã ngân hàng theo Napuas (MBBank = 970422). Thông tin TK không phải bí mật.
+export const BANK = {
+  bankBin: '970422',
+  bankName: 'MBBank',
+  accountNo: '16106688',
+  accountName: 'CONG TY TNHH WELLHOME VIET NAM',
+}
+
 // Thông tin công ty (hiển thị footer + trang liên hệ)
 export const COMPANY = {
   legalName: 'CÔNG TY TNHH WELLHOME (VIỆT NAM)',
