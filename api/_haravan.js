@@ -105,7 +105,9 @@ export async function importFromCsv(csvText) {
     name: col(['ITEM NAME', 'TÊN SP', 'TEN SP', 'TÊN SẢN PHẨM', 'PRODUCT']),
     brand: col(['BRAND', 'HÃNG', 'HANG']), cat: col(['CAT', 'NHÓM', 'NHOM']),
     rsp: col(['RSP', 'GIÁ GỐC', 'GIA GOC', 'GIÁ NIÊM']), kol: col(['KOL', 'GIÁ KOL', 'GIA KOL']),
-    pct: col(['%', 'GIẢM', 'GIAM', 'DISCOUNT']), stock: col(['STOCK', 'TỒN', 'TON', 'KHO']),
+    // % giảm: cột đúng tên "%" hoặc chứa GIẢM/DISCOUNT, KHÔNG phải "VAT (%)"
+    pct: header.findIndex((h) => h.trim() === '%' || (/GIẢM|GIAM|DISCOUNT/.test(h) && !h.includes('VAT'))),
+    stock: col(['STOCK', 'TỒN', 'TON', 'KHO']),
   }
   const items = rows.slice(hi + 1)
     .filter((r) => (ci.cmmf >= 0 ? r[ci.cmmf] : '') && (ci.name >= 0 ? r[ci.name] : '') && String(r[ci.cmmf]).trim() && String(r[ci.name]).trim())
@@ -129,7 +131,10 @@ export async function importFromCsv(csvText) {
   const out = items.map((it) => {
     const har = cache[it.brand] || []
     const h = matchOne(it.cmmf, it.name, har)
-    const disc = it.discountPct || (it.rspPrice > 0 ? Math.round((1 - it.kolPrice / it.rspPrice) * 100) : 0)
+    // Ưu tiên tính % giảm từ giá (đáng tin nhất); fallback cột %, clamp 0-99
+    const disc = (it.rspPrice > it.kolPrice && it.rspPrice > 0)
+      ? Math.round((1 - it.kolPrice / it.rspPrice) * 100)
+      : Math.min(99, Math.max(0, it.discountPct || 0))
     return {
       id: it.cmmf, cmmf: it.cmmf, name: it.name, brand: it.brand,
       category: classifyCategory(it.name),
