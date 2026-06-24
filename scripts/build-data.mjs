@@ -9,6 +9,22 @@ function parseCSV(t){const rows=[];let row=[],cur='',q=false;
   return rows;}
 
 const noDia = s => (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/gi,'d');
+
+// Phân loại nhóm SP theo TÊN (cột CAT trong file bị gán lộn xộn nên không tin cậy).
+// Thứ tự kiểm tra quan trọng: từ cụ thể -> chung.
+function classifyCategory(name){
+  const n = noDia(name).toLowerCase();
+  if (/ban ui|ixeo/.test(n)) return 'Chăm sóc quần áo';
+  if (/hut bui|lau san|lau nha|\brobot\b/.test(n)) return 'Vệ sinh nhà cửa';
+  if (/may xay|may ep|vat cam|xay sinh to|may danh trung/.test(n)) return 'Chế biến thực phẩm';
+  if (/binh dun|sieu toc|am dun|may pha/.test(n)) return 'Đồ uống';
+  if (/\bdao\b|ke dao/.test(n)) return 'Dao & Dụng cụ bếp';
+  // "bếp từ/điện" CHỈ tính khi là thiết bị (đứng đầu tên), tránh "...dùng cho bếp từ" (vẫn là nồi/chảo)
+  if (/^bep (tu|dien|hong ngoai|ga)/.test(n)) return 'Nấu nướng điện';
+  if (/noi chien|noi com|ap suat dien|multicooker|cao tan/.test(n)) return 'Nấu nướng điện';
+  if (/chao|\bnoi\b|quanh|\bvi\b/.test(n)) return 'Nồi & Chảo';
+  return 'Khác';
+}
 const STOP = new Set(['tefal','bosch','smeg','cm','mau','dung','cho','bep','tu','va','2','3','1','bo','mon','inox','l','w','ml','-']);
 const norm = s => noDia(s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const tokens = s => norm(s).split(' ').filter(t=>t.length>1 && !STOP.has(t));
@@ -58,7 +74,8 @@ for(const r of rows){
   products.push({
     id: cmmf,
     cmmf, name, brand: brand||'TEFAL',
-    category: cat,
+    category: classifyCategory(name),
+    catRaw: cat,
     rspPrice: rsp, kolPrice: kol, discountPct: disc, stock,
     badge: note||'',
     haravanId: h?.id||null,
