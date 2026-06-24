@@ -1,4 +1,4 @@
-import { Icon } from '../components/Icons.jsx'
+import { Icon, BrandMark } from '../components/Icons.jsx'
 import { COMPANY, KOL } from '../config.js'
 
 export default function Contact() {
@@ -16,7 +16,7 @@ export default function Contact() {
         <div className="contact-grid">
           <div className="contact-card">
             <div className="co-brand-bar">
-              <span className="brand-mark" style={{ width: 38, height: 38, fontSize: 18 }}>✦</span>
+              <BrandMark size={38} />
               <span className="brand-logo" style={{ fontSize: 22 }}>
                 <span className="wh">WellHome</span><span className="x">×</span><span className="tf">Tefal</span>
               </span>

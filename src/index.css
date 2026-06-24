@@ -49,8 +49,8 @@ img{display:block;max-width:100%}
 .brand-logo .wh{color:var(--navy)}
 .brand-logo .x{color:var(--sky-300);font-weight:600;font-size:16px}
 .brand-logo .tf{color:var(--tefal)}
-.brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--navy),#2A52BE);
-  display:grid;place-items:center;color:#fff;font-size:15px;flex:none}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:#1A73E8;
+  display:grid;place-items:center;color:#fff;flex:none;box-shadow:0 2px 6px rgba(26,115,232,.35)}
 .brand-kol{font-size:11.5px;color:var(--muted);font-weight:600;border-left:1px solid var(--line);padding-left:12px;line-height:1.25}
 .brand-kol b{color:var(--sky-600);display:block;font-size:13px}
 .nav{margin-left:auto;display:flex;align-items:center;gap:6px}

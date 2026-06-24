@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Icon } from './Icons.jsx'
+import { Icon, BrandMark } from './Icons.jsx'
 import { COMPANY, KOL } from '../config.js'
 
 export default function Footer() {
@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="wrap footer-top">
         <div>
           <div className="f-brand">
-            <span className="brand-mark">✦</span>
+            <BrandMark size={32} />
             WellHome <span style={{ color: '#7DD3FC', fontWeight: 500, fontSize: 18 }}>×</span> <span style={{ color: '#FF6B5E' }}>Tefal</span>
           </div>
           <p>Trang mua sắm chính thức của KOL <b style={{ color: '#fff' }}>{KOL.name}</b> — đồ gia dụng Tefal chính hãng với giá ưu đãi độc quyền. Hợp tác minh bạch cùng WellHome Việt Nam.</p>

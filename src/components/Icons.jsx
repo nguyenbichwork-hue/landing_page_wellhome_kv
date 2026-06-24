@@ -1,3 +1,18 @@
+// Logo mark WellHome: bông tuyết trắng trong ô vuông bo góc màu xanh
+export const BrandMark = ({ size = 30 }) => (
+  <span className="brand-mark" style={{ width: size, height: size }}>
+    <svg viewBox="0 0 24 24" width={Math.round(size * 0.7)} height={Math.round(size * 0.7)}
+      fill="none" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      {[0, 60, 120, 180, 240, 300].map((a) => (
+        <g key={a} transform={`rotate(${a} 12 12)`}>
+          <path d="M12 12 V3.3" />
+          <path d="M12 5.9 L9.8 4.1 M12 5.9 L14.2 4.1 M12 8.3 L10.4 7 M12 8.3 L13.6 7" />
+        </g>
+      ))}
+    </svg>
+  </span>
+)
+
 export const Icon = ({ name, size = 20, ...props }) => {
   const paths = {
     cart: <path d="M6 6h15l-1.5 9h-12L5 3H2M9 20a1 1 0 11-2 0 1 1 0 012 0zm10 0a1 1 0 11-2 0 1 1 0 012 0z" />,

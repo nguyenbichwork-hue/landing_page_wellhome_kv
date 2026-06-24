@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Icon } from './Icons.jsx'
+import { Icon, BrandMark } from './Icons.jsx'
 import { useCart } from '../cart.jsx'
 import { KOL } from '../config.js'
 
@@ -9,7 +9,7 @@ export default function Header() {
     <header className="header">
       <div className="wrap header-inner">
         <NavLink to="/" className="brand">
-          <span className="brand-mark">✦</span>
+          <BrandMark size={32} />
           <span className="brand-logo">
             <span className="wh">WellHome</span>
             <span className="x">×</span>
