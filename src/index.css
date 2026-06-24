@@ -59,11 +59,16 @@ img{display:block;max-width:100%}
 .nav a.active::after{content:"";position:absolute;left:14px;right:14px;bottom:1px;height:2.5px;border-radius:2px;background:var(--sky-600)}
 .nav .nav-sale{color:var(--tefal);font-weight:700}
 .nav .nav-sale:hover{background:#FFF0EF}
-.cart-btn{position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin-left:8px;
+.cart-btn{position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:14px;
   background:linear-gradient(135deg,var(--sky-500),var(--sky-600));color:#fff;box-shadow:var(--shadow-sm)}
 .cart-btn:hover{transform:translateY(-1px)}
 .cart-badge{position:absolute;top:-5px;right:-5px;min-width:21px;height:21px;padding:0 5px;border-radius:999px;
   background:var(--tefal);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid #fff}
+.header-actions{display:flex;align-items:center;gap:10px}
+.nav-toggle{display:none;width:46px;height:46px;border-radius:13px;place-items:center;color:var(--navy);
+  background:var(--sky-50);border:1px solid var(--line)}
+.nav-toggle:hover{background:var(--sky-100)}
+.nav-backdrop{display:none}
 /* thanh tab hãng */
 .brandbar{background:var(--sky-50);border-top:1px solid var(--line)}
 .brandbar-inner{display:flex;gap:12px;padding:9px 0;overflow-x:auto}
@@ -73,10 +78,21 @@ img{display:block;max-width:100%}
 .brandtab:hover{border-color:var(--sky-300);transform:translateY(-1px)}
 .brandtab.active{border-color:var(--sky-500);box-shadow:0 0 0 3px var(--sky-100),var(--shadow-sm)}
 @media(max-width:760px){
+  .header-inner{min-height:62px;gap:10px}
   .brand-line2{display:none}
-  .brand-line1{font-size:16px}
-  .brand-line1 .kvn{display:none}
-  .nav a{padding:8px 9px;font-size:13.5px}
+  .brand-line1{font-size:18px}
+  .brand-line1 .x,.brand-line1 .kvn{display:none}
+  .header-actions{margin-left:auto}
+  .nav-toggle{display:grid}
+  /* nav -> menu thả xuống */
+  .nav{position:absolute;top:100%;left:0;right:0;margin-left:0;flex-direction:column;align-items:stretch;gap:2px;
+    background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--shadow);padding:8px 16px 14px;display:none;z-index:60}
+  .nav.open{display:flex;animation:fade .18s ease}
+  .nav a{padding:14px 14px;font-size:16px;border-radius:12px}
+  .nav a:hover{background:var(--sky-50)}
+  .nav a.active{background:var(--sky-50)}
+  .nav a.active::after{display:none}
+  .nav-backdrop{display:block;position:fixed;inset:62px 0 0;background:rgba(12,35,64,.35);z-index:55;border:none}
   .brandtab{min-width:118px;padding:0 18px;height:42px}
   .brandtab img{height:18px}
 }
@@ -425,8 +441,6 @@ img{display:block;max-width:100%}
   .card-title{font-size:13px;-webkit-line-clamp:2}
   .price-wrap .now{font-size:16px}
   .add-mini{width:38px;height:38px}
-  .nav a{padding:8px 11px;font-size:14px}
-  .brand-kol{display:none}
   .grid2,.grid3{grid-template-columns:1fr}
   .section-head h2{font-size:24px}
   .hero-stats{gap:18px}
