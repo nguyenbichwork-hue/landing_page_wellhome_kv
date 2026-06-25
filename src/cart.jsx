@@ -14,11 +14,14 @@ export function CartProvider({ children }) {
   }, [items])
 
   const add = useCallback((product, qty = 1) => {
+    const stock = +product.stock || 0
+    const cap = stock > 0 ? stock : Infinity   // stock 0/không có -> không chặn ở client (server vẫn kiểm)
     setItems((prev) => {
       const i = prev.findIndex((x) => x.id === product.id)
       if (i >= 0) {
         const next = [...prev]
-        next[i] = { ...next[i], qty: next[i].qty + qty }
+        const max = next[i].stock > 0 ? next[i].stock : cap
+        next[i] = { ...next[i], qty: Math.min(next[i].qty + qty, max) }
         return next
       }
       return [...prev, {
@@ -30,7 +33,8 @@ export function CartProvider({ children }) {
         rsp: product.rspPrice,
         image: (product.images && product.images[0]) || '',
         variantId: product.variantId,
-        qty,
+        stock,
+        qty: Math.min(qty, cap),
       }]
     })
     setOpen(true)
@@ -38,7 +42,12 @@ export function CartProvider({ children }) {
 
   const setQty = useCallback((id, qty) => {
     setItems((prev) =>
-      prev.flatMap((x) => (x.id === id ? (qty <= 0 ? [] : [{ ...x, qty }]) : [x]))
+      prev.flatMap((x) => {
+        if (x.id !== id) return [x]
+        if (qty <= 0) return []
+        const cap = x.stock > 0 ? x.stock : Infinity
+        return [{ ...x, qty: Math.min(qty, cap) }]
+      })
     )
   }, [])
 

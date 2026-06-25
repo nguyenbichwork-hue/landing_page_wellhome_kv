@@ -10,6 +10,7 @@
 //   RESEND_API_KEY         : (tùy chọn) API key Resend để gửi email cảnh báo
 //   NOTIFY_ALL             : (tùy chọn) "1" để gửi email cho MỌI đơn (không chỉ khi lỗi)
 import crypto from 'node:crypto'
+import { readStockMap, writeStock } from './_sheets.js'
 
 const SHEET_ID = process.env.SHEET_ID
 const SA_EMAIL = process.env.GOOGLE_SA_EMAIL
@@ -144,7 +145,36 @@ export default async function handler(req, res) {
     if (await alreadyExists(token, data.orderCode)) {
       return res.status(200).json({ ok: true, duplicate: true, orderCode: data.orderCode })
     }
+
+    // ===== Kiểm soát tồn kho: chặn đặt quá số lượng + trừ kho khi đặt =====
+    // Fail-open: nếu không đọc được kho thì KHÔNG chặn đơn (ưu tiên không mất đơn thật).
+    let stockUpdates = []
+    try {
+      const stockMap = await readStockMap(token)
+      if (Object.keys(stockMap).length) {
+        const want = {}
+        for (const it of (data.items || [])) {
+          const key = String(it.id || it.cmmf || '')
+          if (key && stockMap[key]) want[key] = (want[key] || 0) + (+it.qty || 0)
+        }
+        const shortages = Object.keys(want)
+          .filter((k) => want[k] > stockMap[k].stock)
+          .map((k) => ({ name: stockMap[k].name, want: want[k], stock: stockMap[k].stock }))
+        if (shortages.length) {
+          return res.status(409).json({
+            ok: false, outOfStock: true,
+            error: 'Một số sản phẩm không đủ tồn kho: ' +
+              shortages.map((s) => `${s.name} (còn ${s.stock}, đặt ${s.want})`).join('; '),
+            shortages,
+          })
+        }
+        stockUpdates = Object.keys(want).map((k) => ({ row: stockMap[k].row, stock: Math.max(0, stockMap[k].stock - want[k]) }))
+      }
+    } catch (_) { /* không đọc được kho -> bỏ qua kiểm tra, vẫn nhận đơn */ }
+
     await appendRows(token, rows)
+    // Trừ kho sau khi ghi đơn thành công (best-effort, không chặn nếu lỗi).
+    if (stockUpdates.length) { try { await writeStock(token, stockUpdates) } catch (_) { /* ignore */ } }
     if (NOTIFY_ALL) {
       await sendEmail(`🛒 Đơn KOL mới ${data.orderCode} — ${Number(data.total || 0).toLocaleString('vi-VN')}đ`,
         `Khách: ${c.name} - ${c.phone}\nĐịa chỉ: ${c.address || ''}\n\n${itemsText}\n\nTổng: ${Number(data.total || 0).toLocaleString('vi-VN')}đ\nThanh toán: ${data.payment} (${data.paymentStatus})`)

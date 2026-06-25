@@ -123,6 +123,7 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(null)
   const [failed, setFailed] = useState(false)
+  const [stockErr, setStockErr] = useState('')
   // Sinh mã đơn 1 lần khi vào trang -> chống ghi trùng khi khách bấm/thử lại nhiều lần (idempotency)
   const [orderCode] = useState(genOrderCode)
 
@@ -132,6 +133,7 @@ export default function Checkout() {
   // Serverless cùng domain (/api/...) -> gửi JSON. Apps Script (khác domain) -> text/plain để tránh preflight.
   const sameOrigin = ORDER_ENDPOINT.startsWith('/')
   async function postOrder(payload, tries = 3) {
+    let last = { ok: false, error: '' }
     for (let i = 0; i < tries; i++) {
       try {
         const r = await fetch(ORDER_ENDPOINT, {
@@ -140,16 +142,21 @@ export default function Checkout() {
           body: JSON.stringify(payload),
           redirect: 'follow',
         })
-        if (r.ok) {
-          try { const j = await r.json(); if (j && j.ok === false) throw new Error(j.error || 'server') } catch (_) { /* phản hồi không JSON nhưng HTTP ok -> coi như nhận */ }
-          return true
+        let j = null
+        try { j = await r.clone().json() } catch (_) { /* phản hồi không phải JSON */ }
+        // Hết tồn kho -> dừng ngay, không thử lại (đây là từ chối có chủ đích).
+        if (r.status === 409 || (j && j.outOfStock)) {
+          return { ok: false, outOfStock: true, error: (j && j.error) || 'Một số sản phẩm đã hết hàng.' }
         }
+        if (r.ok && !(j && j.ok === false)) return { ok: true }
+        last = { ok: false, error: (j && j.error) || ('HTTP ' + r.status) }
       } catch (err) {
+        last = { ok: false, error: String(err) }
         console.warn(`order post attempt ${i + 1} failed`, err)
       }
       if (i < tries - 1) await new Promise((res) => setTimeout(res, 800 * (i + 1)))
     }
-    return false
+    return last
   }
 
   const validate = () => {
@@ -173,6 +180,7 @@ export default function Checkout() {
     }
     setSubmitting(true)
     setFailed(false)
+    setStockErr('')
     const method = PAY_METHODS.find((m) => m.id === pay)
     const fullAddress = [f.street, f.ward, f.district, f.province].filter(Boolean).join(', ')
     const payload = {
@@ -190,7 +198,7 @@ export default function Checkout() {
       paymentCode: pay,
       paymentStatus: method?.status,
       items: items.map((it) => ({
-        cmmf: it.cmmf, name: it.name, brand: it.brand || 'TEFAL',
+        id: it.id, cmmf: it.cmmf, name: it.name, brand: it.brand || 'TEFAL',
         price: it.price, qty: it.qty, lineTotal: it.price * it.qty,
         discount: Math.max(0, (it.rsp || 0) - it.price) * it.qty,
         variantId: it.variantId,
@@ -202,12 +210,16 @@ export default function Checkout() {
       source: 'khanhvan.wellhome.asia',
     }
 
-    const ok = await postOrder(payload)
+    const res = await postOrder(payload)
     setSubmitting(false)
 
-    if (ok) {
+    if (res.ok) {
       setDone({ orderCode, total: payload.total, name: f.name, payment: payload.payment, paymentCode: pay })
       clear()
+    } else if (res.outOfStock) {
+      // Hết tồn kho: báo rõ, giữ giỏ để khách giảm số lượng. Không hiện nút "Thử lại".
+      setStockErr(res.error || 'Một số sản phẩm đã hết hàng. Vui lòng giảm số lượng.')
+      document.querySelector('.co-fail')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     } else {
       // KHÔNG báo thành công giả. Giữ giỏ hàng để không mất đơn, hiện hotline để khách chốt đơn.
       setFailed(true)
@@ -361,6 +373,14 @@ export default function Checkout() {
             <div className="row"><span>Phí vận chuyển</span><span style={{ color: 'var(--ok)', fontWeight: 600 }}>Miễn phí</span></div>
             <div className="row total"><span>Tổng cộng</span><span className="v">{formatVND(total)}</span></div>
           </div>
+
+          {stockErr && (
+            <div className="co-fail">
+              <b>⚠️ Không đủ tồn kho</b>
+              <span>{stockErr}</span>
+              <span>Vui lòng quay lại giỏ hàng giảm số lượng rồi đặt lại.</span>
+            </div>
+          )}
 
           {failed && (
             <div className="co-fail">

@@ -38,7 +38,7 @@ export default function CartDrawer() {
                       <div className="qty-mini">
                         <button onClick={() => setQty(it.id, it.qty - 1)}><Icon name="minus" size={14} /></button>
                         <span>{it.qty}</span>
-                        <button onClick={() => setQty(it.id, it.qty + 1)}><Icon name="plus" size={14} /></button>
+                        <button onClick={() => setQty(it.id, it.qty + 1)} disabled={it.stock > 0 && it.qty >= it.stock}><Icon name="plus" size={14} /></button>
                       </div>
                       <button className="ci-remove" onClick={() => remove(it.id)} aria-label="Xóa"><Icon name="trash" size={17} /></button>
                     </div>

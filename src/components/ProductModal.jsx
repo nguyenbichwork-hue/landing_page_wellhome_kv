@@ -22,6 +22,9 @@ export default function ProductModal({ product, onClose }) {
   const desc = useMemo(() => parseDescription(product.descriptionHtml), [product])
   const save = product.rspPrice - product.kolPrice
   const isHot = /deal/i.test(product.badge || '')
+  const stock = +product.stock || 0
+  const soldOut = stock <= 0
+  const maxQ = stock > 0 ? stock : 1
 
   const buyNow = () => { add(product, qty); setOpen(false); onClose(); navigate('/thanh-toan') }
 
@@ -56,8 +59,8 @@ export default function ProductModal({ product, onClose }) {
               {product.rspPrice > product.kolPrice && <span className="was">{formatVND(product.rspPrice)}</span>}
               {save > 0 && <span className="save">Tiết kiệm {formatVND(save)}</span>}
             </div>
-            <div className="modal-stock">
-              {product.stock > 0 ? '● Còn hàng — sẵn sàng giao' : 'Liên hệ để đặt hàng'}
+            <div className="modal-stock" style={soldOut ? { color: 'var(--tefal)' } : {}}>
+              {soldOut ? '✕ Tạm hết hàng' : (stock <= 5 ? `● Chỉ còn ${stock} sản phẩm` : '● Còn hàng — sẵn sàng giao')}
             </div>
 
             <div className="modal-perks">
@@ -86,13 +89,13 @@ export default function ProductModal({ product, onClose }) {
           <div className="qty">
             <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Giảm"><Icon name="minus" size={15} /></button>
             <span>{qty}</span>
-            <button onClick={() => setQty((q) => q + 1)} aria-label="Tăng"><Icon name="plus" size={15} /></button>
+            <button onClick={() => setQty((q) => Math.min(maxQ, q + 1))} disabled={soldOut || qty >= maxQ} aria-label="Tăng"><Icon name="plus" size={15} /></button>
           </div>
-          <button className="btn btn-ghost" onClick={() => { add(product, qty); onClose() }}>
+          <button className="btn btn-ghost" disabled={soldOut} onClick={() => { add(product, qty); onClose() }}>
             <Icon name="cart" size={17} /> Thêm giỏ
           </button>
-          <button className="btn btn-accent" onClick={buyNow}>
-            Mua ngay <Icon name="arrow" size={17} />
+          <button className="btn btn-accent" disabled={soldOut} onClick={buyNow}>
+            {soldOut ? 'Hết hàng' : <>Mua ngay <Icon name="arrow" size={17} /></>}
           </button>
         </div>
       </div>

@@ -155,6 +155,25 @@ export async function upsertProducts(token, products) {
   return { added, updated }
 }
 
+// Đọc tồn kho hiện tại: trả map id -> { row, stock, name } (cột H = tồn kho).
+export async function readStockMap(token) {
+  const vals = await getValues(token, `${PROD_TAB}!A2:H`)
+  const map = {}
+  vals.forEach((r, i) => { if (r[0]) map[String(r[0])] = { row: i + 2, stock: +r[7] || 0, name: r[2] || '' } })
+  return map
+}
+
+// Cập nhật tồn kho cột H theo danh sách [{ row, stock }].
+export async function writeStock(token, updates) {
+  if (!updates || !updates.length) return
+  const data = updates.map((u) => ({ range: `${PROD_TAB}!H${u.row}`, values: [[u.stock]] }))
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchUpdate`, {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data }),
+  })
+  if (!r.ok) throw new Error('writeStock ' + r.status + ': ' + (await r.text()))
+}
+
 // Ẩn (xóa mềm) 1 SP theo id.
 export async function setProductActive(token, id, active) {
   const idRange = encodeURIComponent(`${PROD_TAB}!A2:A`)
