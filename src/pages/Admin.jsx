@@ -240,7 +240,7 @@ function EditModal({ product, onClose, onSave }) {
         </Field>
         <div className="admin-edit-act">
           <button className="btn btn-ghost" onClick={onClose}>Hủy</button>
-          <button className="btn btn-primary" onClick={() => onSave(p)} disabled={!p.cmmf || !p.name}>Lưu</button>
+          <button className="btn btn-primary" onClick={() => onSave(p)} disabled={(!p.cmmf && !p.id) || !p.name}>Lưu</button>
         </div>
       </div>
     </div>
