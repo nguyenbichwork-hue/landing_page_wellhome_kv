@@ -42,7 +42,7 @@ img{display:block;max-width:100%}
 
 /* ============ HEADER ============ */
 .header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line)}
-.header-inner{display:flex;align-items:center;gap:18px;min-height:74px;padding:9px 0}
+.header-inner{display:flex;align-items:center;gap:18px;min-height:74px;padding:9px 20px}
 .brand{display:flex;align-items:center;gap:13px}
 .brand-text{display:flex;flex-direction:column}
 .brand-line1{display:flex;align-items:center;gap:8px;font-weight:800;font-size:21px;letter-spacing:-.4px;line-height:1.1}
@@ -291,7 +291,7 @@ img{display:block;max-width:100%}
 .drawer-empty .big{font-size:54px;margin-bottom:8px}
 
 /* ============ CHECKOUT ============ */
-.checkout{padding:34px 0 70px}
+.checkout{padding:34px 20px 70px}
 .checkout-grid{display:grid;grid-template-columns:1.3fr .9fr;gap:28px;align-items:start}
 .co-card{background:#fff;border-radius:var(--radius);padding:26px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:20px}
 .co-card h3{margin:0 0 4px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:9px}
@@ -394,7 +394,7 @@ img{display:block;max-width:100%}
 
 /* ============ FOOTER ============ */
 .footer{background:linear-gradient(160deg,#0C2340,#15347B);color:#cfe0f5;margin-top:30px}
-.footer-top{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:36px;padding:48px 0 34px}
+.footer-top{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:36px;padding:48px 20px 34px}
 .footer h4{color:#fff;font-size:15px;margin:0 0 16px;font-weight:700}
 .footer .f-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;color:#fff;margin-bottom:14px}
 .footer p{font-size:13.5px;line-height:1.7;color:#aec5e6;margin:0 0 10px;max-width:340px}
@@ -402,7 +402,7 @@ img{display:block;max-width:100%}
 .footer .f-link:hover{color:#fff;padding-left:4px}
 .footer .f-contact{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:#bcd2ef;margin-bottom:12px;line-height:1.6}
 .footer .f-contact .ic{color:var(--sky-300);flex:none;margin-top:2px}
-.footer-bottom{border-top:1px solid rgba(255,255,255,.12);padding:18px 0;font-size:12.5px;color:#8fb0db;
+.footer-bottom{border-top:1px solid rgba(255,255,255,.12);padding:18px 20px;font-size:12.5px;color:#8fb0db;
   display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 /* ============ ANIMATIONS ============ */
@@ -448,6 +448,10 @@ img{display:block;max-width:100%}
   .modal-actionbar{flex-wrap:wrap;gap:8px;padding:10px 14px}
   .modal-actionbar .btn{padding:11px 10px;font-size:14px}
   .modal-actionbar .btn-accent{flex-basis:100%;order:3}
+  /* toolbar: ô tìm kiếm chiếm trọn 1 hàng để thấy rõ nội dung gõ */
+  .toolbar{flex-wrap:wrap}
+  .toolbar .searchbar{order:-1;flex:1 1 100%}
+  .toolbar .sort-select{flex:1}
 }
 
 /* ============ PROMO BANNER (sale) ============ */
@@ -631,7 +635,7 @@ img{display:block;max-width:100%}
 @media(max-width:980px){
   .hero-perks{grid-template-columns:repeat(2,1fr)}
   .salebanner{grid-template-columns:1fr;gap:14px;text-align:center;justify-items:center}
-  .sb-left{flex-direction:row;justify-content:center}
+  .sb-left{flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%}
   .sb-mid{flex-direction:column;text-align:center}
   .sb-name{max-width:none}
 }
