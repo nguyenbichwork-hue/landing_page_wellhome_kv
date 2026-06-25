@@ -20,13 +20,14 @@ const ALERT_EMAIL = process.env.ALERT_EMAIL
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const NOTIFY_ALL = process.env.NOTIFY_ALL === '1'
 
-// 1 dòng / mỗi sản phẩm — khớp cấu trúc sheet mẫu KOL + thêm "Trạng thái thanh toán"
+// 1 dòng / mỗi sản phẩm — A→T khớp Y CHANG file mẫu KOL; cột U "Trạng thái thanh toán" là cột phụ
+// (web dùng để tự xác nhận chuyển khoản qua SePay, không có trong mẫu).
 const HEADERS = ['Ngày đặt hàng', 'Tên người nhận', 'Số điện thoại', 'Email', 'Shipping Street',
   'Phường/Xã nhận hàng', 'Quận/Huyện nhận hàng', 'Tỉnh/TP nhận hàng', 'Phương thức thanh toán',
-  'Trạng thái thanh toán', 'Mã đơn hàng', 'Hãng', 'Mã sản phẩm', 'Tên sản phẩm', 'Số lượng',
-  'Giá sản phẩm', 'Số tiền giảm', 'Thành tiền', 'Tên Camp', 'Ghi chú', 'Nguồn']
-const RANGE_COLS = 'A:U'              // 21 cột
-const CODE_COL = 'K'                  // cột "Mã đơn hàng" để chống ghi trùng
+  'Mã đơn hàng', 'Hãng', 'Mã sản phẩm *', 'Tên sản phẩm', 'Số lượng', 'Giá sản phẩm',
+  'Số tiền giảm', 'Tên Camp', 'Ghi chú', 'Total GMV', 'GMV SAU VOUCHER (IFANY)', 'Trạng thái thanh toán']
+const RANGE_COLS = 'A:U'              // 21 cột (A→T theo mẫu + U trạng thái thanh toán)
+const CODE_COL = 'J'                  // cột "Mã đơn hàng" để chống ghi trùng
 
 const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
 
@@ -129,13 +130,32 @@ export default async function handler(req, res) {
   const c = data.customer || {}
   const ngay = fmtDate(data.createdAt)
   const list = (data.items && data.items.length) ? data.items : [{}]
-  const rows = list.map((it) => ([
-    ngay, c.name || '', "'" + (c.phone || ''), c.email || '', c.street || '',
-    c.ward || '', c.district || '', c.province || '', data.payment || '', data.paymentStatus || '',
-    data.orderCode || '', it.brand || '', it.cmmf || '', it.name || '', it.qty || 0,
-    it.price || 0, it.discount || 0, (it.lineTotal != null ? it.lineTotal : (it.price || 0) * (it.qty || 0)),
-    data.campaign || '', c.note || '', data.source || '',
-  ]))
+  const rows = list.map((it) => {
+    const gmv = (it.price || 0) * (it.qty || 0)
+    return [
+      ngay,                              // A Ngày đặt hàng
+      c.name || '',                      // B Tên người nhận
+      "'" + (c.phone || ''),             // C Số điện thoại
+      c.email || '',                     // D Email
+      c.street || '',                    // E Shipping Street
+      c.ward || '',                      // F Phường/Xã
+      c.district || '',                  // G Quận/Huyện
+      c.province || '',                  // H Tỉnh/TP
+      data.payment || '',                // I Phương thức thanh toán
+      data.orderCode || '',              // J Mã đơn hàng
+      it.brand || '',                    // K Hãng
+      it.cmmf || it.id || '',            // L Mã sản phẩm *
+      it.name || '',                     // M Tên sản phẩm
+      it.qty || 0,                       // N Số lượng
+      it.price || 0,                     // O Giá sản phẩm
+      it.discount || 0,                  // P Số tiền giảm
+      data.campaign || '',               // Q Tên Camp
+      c.note || '',                      // R Ghi chú
+      gmv,                               // S Total GMV
+      (it.lineTotal != null ? it.lineTotal : gmv),  // T GMV SAU VOUCHER (IFANY)
+      data.paymentStatus || '',          // U Trạng thái thanh toán (cột phụ)
+    ]
+  })
   const itemsText = (data.items || [])
     .map((it) => `${it.qty}x ${it.name} (${it.cmmf}) = ${Number(it.lineTotal || 0).toLocaleString('vi-VN')}đ`)
     .join('\n')
