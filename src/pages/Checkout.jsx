@@ -103,8 +103,8 @@ function BankPayment({ done }) {
 }
 
 const PAY_METHODS = [
+  { id: 'BANK', emoji: '🏦', title: 'Chuyển khoản qua ngân hàng', desc: 'Quét mã QR thanh toán — tự xác nhận ngay khi nhận tiền', status: 'Chờ chuyển khoản' },
   { id: 'COD', emoji: '💵', title: 'Thanh toán khi giao hàng (COD)', desc: 'Thanh toán tiền mặt khi nhận sản phẩm', status: 'Chưa thu (COD)' },
-  { id: 'BANK', emoji: '🏦', title: 'Chuyển khoản qua ngân hàng', desc: 'Nhân viên gửi thông tin chuyển khoản sau khi đặt', status: 'Chờ chuyển khoản' },
 ]
 
 function genOrderCode() {
@@ -118,7 +118,7 @@ export default function Checkout() {
   const { items, total, savings, clear } = useCart()
   const navigate = useNavigate()
   const [f, setF] = useState({ name: '', phone: '', email: '', province: '', district: '', ward: '', street: '', note: '' })
-  const [pay, setPay] = useState('COD')
+  const [pay, setPay] = useState('BANK')
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(null)
