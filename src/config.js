@@ -71,7 +71,7 @@ export const categoryLabel = (c) => CATEGORY_LABELS[c] || c || 'Khác'
 // Quyền lợi cố định hiển thị trên sản phẩm
 export const PERKS = [
   { icon: 'shield', text: WARRANTY },
-  { icon: 'truck', text: 'Giao hàng & lắp đặt 0đ' },
+  { icon: 'truck', text: 'Giao hàng & lắp đặt miễn phí' },
   { icon: 'check', text: 'Chính hãng 100%' },
 ]
 

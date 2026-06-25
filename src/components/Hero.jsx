@@ -6,7 +6,7 @@ export default function Hero({ products, goShop }) {
   const perks = [
     { icon: 'star', big: `${products.length}+`, text: 'sản phẩm ưu đãi', c: 'p1' },
     { icon: 'shield', big: '', text: WARRANTY, c: 'p2' },
-    { icon: 'truck', big: '0đ', text: 'Giao hàng & lắp đặt', c: 'p3' },
+    { icon: 'truck', big: 'Miễn phí', text: 'Giao hàng & lắp đặt', c: 'p3' },
     { icon: 'check', big: '', text: 'Chính hãng 100%', c: 'p4' },
   ]
 
@@ -17,7 +17,7 @@ export default function Hero({ products, goShop }) {
           <span className="hero-eyebrow"><span className="dot" /> CHÍNH HÃNG • GIÁ TỐT NHẤT</span>
           <h1>Gia dụng chính hãng<br /><span className="grad">giá ưu đãi riêng cho bạn</span></h1>
           <p className="lead">
-            Sản phẩm chính hãng 100% từ <b>Tefal – Bosch – Smeg</b>. Giao hàng & lắp đặt 0đ,
+            Sản phẩm chính hãng 100% từ <b>Tefal – Bosch – Smeg</b>. Giao hàng & lắp đặt miễn phí,
             bảo hành linh hoạt 2–3 năm theo chính sách từng hãng.
           </p>
           <div className="hero-cta">
