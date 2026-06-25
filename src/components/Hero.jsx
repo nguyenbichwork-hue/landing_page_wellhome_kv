@@ -1,31 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from './Icons.jsx'
 import { WARRANTY } from '../config.js'
-import { productImage } from '../utils.js'
+import heroBanner from '../assets/hero-banner.jpg'
 
-export default function Hero({ products, onOpen, goShop }) {
-  // Chỉ lấy sản phẩm ĐÃ CÓ trên web (có ảnh) làm showcase
-  const showItems = useMemo(() =>
-    products.filter((p) => p.images.length)
-      .sort((a, b) => (/deal/i.test(b.badge) - /deal/i.test(a.badge)) || b.discountPct - a.discountPct)
-      .slice(0, 12)
-  , [products])
-
-  const perView = 3
-  const slides = Math.max(1, Math.ceil(showItems.length / perView))
-  const [slide, setSlide] = useState(0)
-  const timer = useRef(null)
-  useEffect(() => {
-    if (slides <= 1) return
-    timer.current = setInterval(() => setSlide((s) => (s + 1) % slides), 3800)
-    return () => clearInterval(timer.current)
-  }, [slides])
-  const go = (d) => setSlide((s) => (s + d + slides) % slides)
-
-  const view = showItems.length
-    ? Array.from({ length: perView }, (_, i) => showItems[(slide * perView + i) % showItems.length])
-    : []
-
+export default function Hero({ products, goShop }) {
   const perks = [
     { icon: 'star', big: `${products.length}+`, text: 'sản phẩm ưu đãi', c: 'p1' },
     { icon: 'shield', big: '', text: WARRANTY, c: 'p2' },
@@ -57,26 +34,9 @@ export default function Hero({ products, onOpen, goShop }) {
           </div>
         </div>
 
-        {view.length > 0 && (
-          <div className="hero-showcase">
-            <div className="hs-panels">
-              {view.map((p, i) => (
-                <div className="hs-panel" key={p ? p.id + '-' + i : i} onClick={() => p && onOpen(p)}>
-                  {p && <img className="hs-banner" src={productImage(p)} alt={p.name} />}
-                </div>
-              ))}
-            </div>
-            {slides > 1 && <>
-              <button className="hs-nav left" onClick={() => go(-1)} aria-label="Trước">‹</button>
-              <button className="hs-nav right" onClick={() => go(1)} aria-label="Sau">›</button>
-              <div className="hs-dots">
-                {Array.from({ length: slides }).map((_, i) => (
-                  <button key={i} className={i === slide ? 'on' : ''} onClick={() => setSlide(i)} aria-label={`Trang ${i + 1}`} />
-                ))}
-              </div>
-            </>}
-          </div>
-        )}
+        <div className="hero-banner-wrap">
+          <img className="hero-banner-img" src={heroBanner} alt="WellHome × Nguyễn Phạm Khánh Vân — Gia dụng chính hãng Tefal, Bosch, Smeg" />
+        </div>
       </div>
     </section>
   )

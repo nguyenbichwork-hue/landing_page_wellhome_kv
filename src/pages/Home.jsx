@@ -59,9 +59,15 @@ export default function Home() {
       .slice(0, 12)
   , [products])
 
-  const banner = useMemo(() =>
-    [...products].filter((p) => p.images.length).sort((a, b) => b.discountPct - a.discountPct)[0]
-  , [products])
+  // Banner SALE tự lướt: SP gắn tag DEAL SỐC / FLASH SALE lên đầu, rồi bù thêm SP giảm sâu nhất
+  const dealProducts = useMemo(() => {
+    const tagged = [...products]
+      .filter((p) => p.images.length && /deal|flash|sốc/i.test(p.badge || ''))
+      .sort((a, b) => b.discountPct - a.discountPct)
+    const ids = new Set(tagged.map((p) => p.id))
+    const fill = saleProducts.filter((p) => !ids.has(p.id))
+    return [...tagged, ...fill].slice(0, 8)
+  }, [products, saleProducts])
 
   const brands = useMemo(() => {
     const m = {}; products.forEach((p) => (m[p.brand] = (m[p.brand] || 0) + 1))
@@ -104,7 +110,7 @@ export default function Home() {
       <Hero products={products} onOpen={setModal} goShop={goShop} />
 
       {/* ===== BANNER SALE SỐC + ĐẾM NGƯỢC ===== */}
-      <SaleBanner deals={saleProducts} onOpen={setModal} />
+      <SaleBanner deals={dealProducts} onOpen={setModal} />
 
       {/* ===== SALE SẬP SÀN ===== */}
       {saleProducts.length > 0 && (
