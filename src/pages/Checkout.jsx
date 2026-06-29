@@ -117,9 +117,9 @@ function genOrderCode() {
 export default function Checkout() {
   const { items, total, savings, clear } = useCart()
   const navigate = useNavigate()
-  const [f, setF] = useState({ name: '', phone: '', email: '', province: '', ward: '', street: '', note: '' })
-  // Bản đồ Phường/Xã theo Tỉnh — tải động khi vào trang để không phình bundle chính (file ~68KB)
-  const [wardsMap, setWardsMap] = useState(null)
+  const [f, setF] = useState({ name: '', phone: '', email: '', province: '', district: '', ward: '', street: '', note: '' })
+  // Bản đồ địa chỉ Tỉnh -> Quận/Huyện -> Phường/Xã — tải động khi vào trang để không phình bundle chính (~174KB)
+  const [addr, setAddr] = useState(null)
   const [pay, setPay] = useState('BANK')
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -130,21 +130,29 @@ export default function Checkout() {
   const [orderCode] = useState(genOrderCode)
 
   const set = (k) => (e) => { setF((s) => ({ ...s, [k]: e.target.value })); setErrors((er) => ({ ...er, [k]: '' })) }
-  // Đổi Tỉnh -> reset Phường/Xã đã chọn (danh sách phụ thuộc tỉnh)
+  // Đổi Tỉnh -> reset Quận/Huyện + Phường/Xã (danh sách cấp dưới phụ thuộc cấp trên)
   const setProvince = (e) => {
     const province = e.target.value
-    setF((s) => ({ ...s, province, ward: '' }))
-    setErrors((er) => ({ ...er, province: '', ward: '' }))
+    setF((s) => ({ ...s, province, district: '', ward: '' }))
+    setErrors((er) => ({ ...er, province: '', district: '', ward: '' }))
+  }
+  // Đổi Quận/Huyện -> reset Phường/Xã
+  const setDistrict = (e) => {
+    const district = e.target.value
+    setF((s) => ({ ...s, district, ward: '' }))
+    setErrors((er) => ({ ...er, district: '', ward: '' }))
   }
 
-  // Tải bản đồ Phường/Xã 1 lần khi vào trang
+  // Tải bản đồ địa chỉ 1 lần khi vào trang
   useEffect(() => {
     let on = true
-    import('../data/wards.js').then((m) => { if (on) setWardsMap(m.WARDS) })
+    import('../data/address.js').then((m) => { if (on) setAddr(m.VN_ADDRESS) })
     return () => { on = false }
   }, [])
 
-  const wardOptions = (wardsMap && f.province && wardsMap[f.province]) || []
+  const districtMap = (addr && f.province && addr[f.province]) || null
+  const districtOptions = districtMap ? Object.keys(districtMap) : []
+  const wardOptions = (districtMap && f.district && districtMap[f.district]) || []
 
   // Gửi đơn với retry + kiểm tra phản hồi thật.
   // Serverless cùng domain (/api/...) -> gửi JSON. Apps Script (khác domain) -> text/plain để tránh preflight.
@@ -182,6 +190,7 @@ export default function Checkout() {
     if (!/^0\d{9,10}$/.test(f.phone.replace(/\s/g, ''))) er.phone = 'Số điện thoại không hợp lệ'
     if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) er.email = 'Email không hợp lệ'
     if (!f.province) er.province = 'Vui lòng chọn tỉnh/thành'
+    if (!f.district) er.district = 'Vui lòng chọn quận/huyện'
     if (!f.ward) er.ward = 'Vui lòng chọn phường/xã'
     if (!f.street.trim()) er.street = 'Vui lòng nhập số nhà, tên đường'
     setErrors(er)
@@ -198,7 +207,7 @@ export default function Checkout() {
     setFailed(false)
     setStockErr('')
     const method = PAY_METHODS.find((m) => m.id === pay)
-    const fullAddress = [f.street, f.ward, f.province].filter(Boolean).join(', ')
+    const fullAddress = [f.street, f.ward, f.district, f.province].filter(Boolean).join(', ')
     const payload = {
       orderCode,
       kol: KOL.name,
@@ -207,7 +216,7 @@ export default function Checkout() {
       createdAt: new Date().toISOString(),
       customer: {
         name: f.name, phone: f.phone.replace(/\s/g, ''), email: f.email,
-        street: f.street, ward: f.ward, district: '', province: f.province,
+        street: f.street, ward: f.ward, district: f.district, province: f.province,
         address: fullAddress, note: f.note,
       },
       payment: method?.title,
@@ -322,20 +331,31 @@ export default function Checkout() {
                 </select>
                 {errors.province && <div className="msg">{errors.province}</div>}
               </div>
-              <div className={`field ${errors.ward ? 'err' : ''}`}>
-                <label>Phường / Xã <span className="req">*</span></label>
-                <select value={f.ward} onChange={set('ward')} disabled={!f.province || !wardsMap}>
+              <div className={`field ${errors.district ? 'err' : ''}`}>
+                <label>Quận / Huyện <span className="req">*</span></label>
+                <select value={f.district} onChange={setDistrict} disabled={!f.province || !addr}>
                   <option value="">
                     {!f.province
                       ? '— Chọn tỉnh / thành trước —'
-                      : !wardsMap
+                      : !addr
                         ? 'Đang tải danh sách...'
-                        : '— Chọn phường / xã —'}
+                        : '— Chọn quận / huyện —'}
                   </option>
-                  {wardOptions.map((w) => <option key={w} value={w}>{w}</option>)}
+                  {districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
-                {errors.ward && <div className="msg">{errors.ward}</div>}
+                {errors.district && <div className="msg">{errors.district}</div>}
               </div>
+            </div>
+
+            <div className={`field ${errors.ward ? 'err' : ''}`}>
+              <label>Phường / Xã <span className="req">*</span></label>
+              <select value={f.ward} onChange={set('ward')} disabled={!f.district || !addr}>
+                <option value="">
+                  {!f.district ? '— Chọn quận / huyện trước —' : '— Chọn phường / xã —'}
+                </option>
+                {wardOptions.map((w) => <option key={w} value={w}>{w}</option>)}
+              </select>
+              {errors.ward && <div className="msg">{errors.ward}</div>}
             </div>
 
             <div className={`field ${errors.street ? 'err' : ''}`}>
