@@ -37,7 +37,20 @@ export default function Hero({ products, goShop, camp }) {
         </div>
 
         <div className="hero-banner-wrap">
-          <img className="hero-banner-img" src={camp?.hero_url || heroBanner} alt="WellHome × Nguyễn Phạm Khánh Vân — Gia dụng chính hãng Tefal, Bosch, Smeg" />
+          {camp && !camp.hero_url ? (
+            /* Trang camp CHƯA đặt ảnh hero → khối gradient trung tính (không dùng ảnh KOL khác) */
+            <div className="hero-banner-img" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(135deg,#0284C7,#38BDF8)', color: '#fff', minHeight: 320,
+              borderRadius: 24, textAlign: 'center', padding: 24,
+            }}>
+              <div style={{ fontSize: 44 }}>🛍️</div>
+              <div style={{ fontWeight: 900, fontSize: 24, marginTop: 8 }}>{camp.title}</div>
+              {camp.kol_name && <div style={{ opacity: .9, marginTop: 6, fontWeight: 700 }}>✨ cùng {camp.kol_name}</div>}
+            </div>
+          ) : (
+            <img className="hero-banner-img" src={camp?.hero_url || heroBanner} alt="WellHome — Gia dụng chính hãng" />
+          )}
         </div>
       </div>
     </section>
