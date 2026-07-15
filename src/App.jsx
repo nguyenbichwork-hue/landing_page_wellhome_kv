@@ -10,7 +10,9 @@ import Admin from './pages/Admin.jsx'
 
 function ScrollTop() {
   const { pathname } = useLocation()
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  // Bọc {} — KHÔNG trả giá trị của scrollTo ra useEffect (Chrome mới trả Promise
+  // khi html có scroll-behavior:smooth → React crash "destroy is not a function").
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
   return null
 }
 

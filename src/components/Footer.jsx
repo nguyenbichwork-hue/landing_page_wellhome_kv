@@ -1,18 +1,17 @@
 import { NavLink } from 'react-router-dom'
-import { Icon, BrandMark } from './Icons.jsx'
+import { Icon } from './Icons.jsx'
 import { COMPANY, KOL } from '../config.js'
 
+// Footer kiểu hannaholala.com: nền TRẮNG, chữ đen/ghi, cột thông tin doanh nghiệp
+// + chính sách + liên hệ, viền trên mảnh.
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="wrap footer-top">
         <div>
-          <div className="f-brand">
-            <BrandMark size={32} />
-            WellHome
-          </div>
-          <p><b style={{ color: '#fff' }}>WellHome đồng hành cùng {KOL.fullName}</b> — đồ gia dụng Tefal · Bosch · Smeg chính hãng với giá ưu đãi độc quyền. Hợp tác minh bạch cùng WellHome Việt Nam.</p>
-          <p style={{ fontSize: 12.5, color: '#8fb0db' }}>{COMPANY.copyright}</p>
+          <div className="f-brand">WELLHOME</div>
+          <p><b style={{ color: '#111' }}>WellHome đồng hành cùng {KOL.fullName}</b> — đồ gia dụng Tefal · Bosch · Smeg chính hãng với giá ưu đãi độc quyền. Hợp tác minh bạch cùng WellHome Việt Nam.</p>
+          <p style={{ fontSize: 12.5, color: '#8A8F98' }}>{COMPANY.copyright}</p>
         </div>
 
         <div>

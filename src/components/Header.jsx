@@ -1,9 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Icon, BrandMark } from './Icons.jsx'
+import { Icon } from './Icons.jsx'
 import { useCart } from '../cart.jsx'
 import { KOL, getCampMeta, campSlugFromPath } from '../config.js'
 
+// Header 2 tầng kiểu hannaholala.com: logo serif giãn cách Ở GIỮA,
+// hàng nav CHỮ HOA tracking bên dưới, giỏ hàng góc phải.
 export default function Header() {
   const { count, setOpen } = useCart()
   const [menu, setMenu] = useState(false)
@@ -19,26 +21,14 @@ export default function Header() {
 
   return (
     <header className="header">
-      <div className="wrap header-inner">
+      <div className="header-top">
+        <div />
         <NavLink to="/" className="brand" onClick={close}>
-          <BrandMark size={42} />
-          <div className="brand-text">
-            <div className="brand-line1">
-              <span className="wh">WellHome</span>
-              <span className="x">✕</span>
-              <span className="kvn">{camp?.kol_name || KOL.fullName}</span>
-            </div>
-            <div className="brand-line2">{camp?.title || KOL.tagline}</div>
+          <div className="brand-serif">
+            WELLHOME<span className="bx">✕</span>{(camp?.kol_name || KOL.fullName).toUpperCase()}
           </div>
+          <div className="brand-line2">{camp?.title || KOL.tagline}</div>
         </NavLink>
-
-        <nav className={`nav ${menu ? 'open' : ''}`}>
-          <NavLink to="/" end onClick={close}>Trang chủ</NavLink>
-          <a href="/#san-pham" onClick={close}>Sản phẩm</a>
-          <a href="/#sale" className="nav-sale" onClick={close}>Sale sốc</a>
-          <NavLink to="/lien-he" onClick={close}>Liên hệ</NavLink>
-        </nav>
-
         <div className="header-actions">
           <button className="cart-btn" onClick={() => setOpen(true)} aria-label="Giỏ hàng">
             <Icon name="cart" size={22} />
@@ -48,6 +38,15 @@ export default function Header() {
             <Icon name={menu ? 'close' : 'menu'} size={24} />
           </button>
         </div>
+      </div>
+
+      <div className="nav-row">
+        <nav className={`nav ${menu ? 'open' : ''}`}>
+          <NavLink to="/" end onClick={close}>Trang chủ</NavLink>
+          <a href="/#san-pham" onClick={close}>Sản phẩm</a>
+          <a href="/#sale" className="nav-sale" onClick={close}>Sale sốc</a>
+          <NavLink to="/lien-he" onClick={close}>Liên hệ</NavLink>
+        </nav>
       </div>
       {menu && <button className="nav-backdrop" aria-label="Đóng menu" onClick={close} />}
     </header>

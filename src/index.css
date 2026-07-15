@@ -1,22 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Prata&display=swap');
+/* ===== HANNAH OLALA THEME (15/07) — trắng/đen tối giản, serif tracking, badge đen, highlight giá vàng ===== */
 :root {
-  --sky-50:#F0F9FF; --sky-100:#E0F4FE; --sky-200:#BAE6FD; --sky-300:#7DD3FC;
-  --sky-400:#38BDF8; --sky-500:#0EA5E9; --sky-600:#0284C7; --sky-700:#0369A1;
-  --navy:#15347B;          /* WellHome blue */
-  --tefal:#E2231A;         /* Tefal red */
-  --ink:#0C2340; --muted:#5B7088; --line:#E3ECF5;
-  --sand:#FFF6E6; --mint:#E6FBF4;
-  --ok:#16A34A;
-  --shadow-sm:0 2px 10px rgba(21,52,123,.06);
-  --shadow:0 10px 30px rgba(14,90,160,.12);
-  --shadow-lg:0 24px 60px rgba(14,90,160,.20);
-  --radius:18px; --radius-sm:12px;
+  /* Palette HANNAH OLALA: nền trắng, chữ than #2B3035, đen #111 cho nút/badge,
+     vàng nhạt highlight GIÁ BÁN. Các biến sky-* remap sang thang xám để mọi
+     component cũ tự đổi theo mà không phải sửa từng chỗ. */
+  --sky-50:#F7F7F7; --sky-100:#F0F0F0; --sky-200:#E2E2E2; --sky-300:#C9C9C9;
+  --sky-400:#9A9A9A; --sky-500:#111111; --sky-600:#000000; --sky-700:#333333;
+  --navy:#111111;
+  --tefal:#C81E1E;
+  --ink:#2B3035; --muted:#8A8F98; --line:#E8E8E8;
+  --sand:#FFF9E8; --mint:#F0F7F0;
+  --hl:#FFF3B0;            /* vàng nhạt "GIÁ BÁN" kiểu Hannah */
+  --ok:#1E7B34;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.05);
+  --shadow:0 8px 26px rgba(0,0,0,.09);
+  --shadow-lg:0 18px 50px rgba(0,0,0,.14);
+  --radius:4px; --radius-sm:3px;
   --wrap:1200px;
+  --serif:'Prata',Georgia,'Times New Roman',serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
   margin:0; font-family:'Be Vietnam Pro',system-ui,Segoe UI,Roboto,sans-serif;
-  color:var(--ink); background:var(--sky-50);
+  color:var(--ink); background:#fff;
   -webkit-font-smoothing:antialiased;
 }
 a{color:inherit;text-decoration:none}
@@ -647,3 +654,211 @@ img{display:block;max-width:100%}
   .sb-t2{font-size:26px}.sb-t1{font-size:19px}
   .sb-num{font-size:17px;min-width:34px}
 }
+
+/* =====================================================================
+   HANNAH OLALA THEME OVERRIDES (15/07) — đè cuối file để thắng cascade.
+   Nguồn tham chiếu: hannaholala.com — trắng/đen tối giản, logo serif giãn
+   cách, nav CHỮ HOA tracking, badge -% ĐEN góc phải, GIÁ BÁN nền vàng nhạt,
+   nút đen bo 4px, tiêu đề section chữ hoa + gạch ngang nhỏ ở giữa.
+   ===================================================================== */
+
+/* ---- NÚT: đen, vuông vắn, chữ hoa tracking ---- */
+.btn{border-radius:3px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;padding:13px 26px}
+.btn-primary,.btn-accent{background:#111;color:#fff;box-shadow:none}
+.btn-primary:hover,.btn-accent:hover{background:#000;box-shadow:0 4px 14px rgba(0,0,0,.22);transform:translateY(-1px)}
+.btn-ghost{background:#fff;color:#111;border:1px solid #111;border-radius:3px}
+.btn-ghost:hover{background:#111;color:#fff;border-color:#111}
+
+/* ---- HEADER 2 tầng: logo serif giữa, nav chữ hoa dưới ---- */
+.header{border-bottom:1px solid var(--line)}
+.header-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:16px 20px 10px;max-width:var(--wrap);margin:0 auto}
+.brand{grid-column:2;flex-direction:column;text-align:center;gap:4px}
+.brand-serif{font-family:var(--serif);font-size:26px;letter-spacing:.22em;color:#111;line-height:1.15;white-space:nowrap}
+.brand-serif .bx{font-size:15px;color:#999;letter-spacing:0;margin:0 6px}
+.brand-line2{font-size:10.5px;color:var(--muted);font-weight:500;letter-spacing:.3em;text-transform:uppercase;margin-top:2px}
+.header-actions{grid-column:3;justify-self:end}
+.cart-btn{background:#fff;color:#111;border:none;box-shadow:none;width:42px;height:42px}
+.cart-btn:hover{transform:none;background:var(--sky-50);border-radius:50%}
+.cart-badge{background:#111;border:2px solid #fff}
+.nav-row{display:flex;justify-content:center;padding:0 20px}
+.nav{margin:0;gap:6px;flex-wrap:wrap;justify-content:center;padding-bottom:12px}
+.nav a{padding:7px 16px;border-radius:0;font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:#111}
+.nav a:hover{background:none;color:#000;text-decoration:underline;text-underline-offset:6px}
+.nav a.active{color:#000}
+.nav a.active::after{left:16px;right:16px;bottom:2px;height:1.5px;border-radius:0;background:#111}
+.nav .nav-sale{color:#C81E1E}
+.nav .nav-sale:hover{background:none}
+.nav-toggle{background:#fff;border:1px solid var(--line);color:#111;border-radius:3px}
+@media(max-width:760px){
+  .header-top{padding:12px 14px 8px}
+  .brand-serif{font-size:17px;letter-spacing:.14em}
+  .brand-line2{display:none}
+  .nav-row{padding:0}
+  .nav{position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;background:#fff;
+    border-bottom:1px solid var(--line);box-shadow:var(--shadow);padding:8px 16px 14px;display:none;z-index:60}
+  .nav.open{display:flex}
+  .nav a{padding:13px 10px;text-align:center}
+}
+
+/* ---- HERO: banner tràn viền + khối chữ serif giữa ---- */
+.hero{background:#fff}
+.hero::after{display:none}
+.hero-full{width:100%;height:auto;display:block}
+.hero-copy2{text-align:center;padding:46px 20px 30px;max-width:760px;margin:0 auto}
+.hero-eyebrow2{font-size:11px;font-weight:700;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
+.hero-serif{font-family:var(--serif);font-size:36px;line-height:1.25;margin:0 0 14px;color:#111;font-weight:400;letter-spacing:.06em;text-transform:uppercase}
+.hero-dash{width:46px;height:2px;background:#111;margin:0 auto 18px}
+.lead2{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0 0 24px}
+.hero-cta{justify-content:center}
+.hero-usp{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 26px;margin-top:26px;
+  font-size:12.5px;color:#555;font-weight:500;letter-spacing:.02em}
+.hero-usp span{display:inline-flex;align-items:center;gap:7px}
+.hero-usp .tick{color:#111;font-weight:700}
+@media(max-width:560px){.hero-serif{font-size:24px}.hero-copy2{padding:34px 16px 22px}}
+
+/* ---- TIÊU ĐỀ SECTION: chữ hoa giữa + gạch ngang nhỏ (đúng kiểu Hannah) ---- */
+.section-head{flex-direction:column;align-items:center;text-align:center;gap:6px;margin-bottom:28px}
+.section-head h2{font-size:22px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#111}
+.section-head h2::after{content:"";display:block;width:44px;height:2px;background:#111;margin:12px auto 0}
+.section-head p{color:var(--muted);font-size:13px}
+.count-pill{background:#111;color:#fff;border-radius:2px;font-size:12px;letter-spacing:.08em}
+
+/* ---- CARD SẢN PHẨM: phẳng, badge ĐEN góc phải, GIÁ BÁN nền vàng ---- */
+.card{border-radius:2px;border:1px solid #EFEFEF;box-shadow:none}
+.card:hover{transform:none;box-shadow:0 10px 30px rgba(0,0,0,.08);border-color:#E2E2E2}
+.disc-badge{left:auto;right:10px;top:10px;background:#111;color:#fff;border-radius:2px;
+  font-size:12px;font-weight:700;padding:5px 8px;box-shadow:none;letter-spacing:.04em}
+.disc-badge small{display:none}
+.soldout-badge{right:auto;left:10px;background:#999;border-radius:2px;box-shadow:none}
+.card-quick{background:#111;color:#fff;border-radius:2px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;box-shadow:none}
+.card-cat{color:var(--muted);letter-spacing:.14em;font-weight:600}
+.deal-tag{background:#111;color:#fff;border-radius:2px}
+.card-title{font-size:13.5px}
+.price-wrap{display:flex;flex-direction:column-reverse;align-items:flex-start;gap:4px}
+.price-wrap .was{margin:0;font-size:12px;display:block}
+.price-wrap .was::before{content:"Tổng giá trị: ";text-decoration:none;color:var(--muted);font-weight:500}
+.price-wrap .now{color:#2B3035;font-weight:700;font-size:15.5px;background:var(--hl);padding:4px 9px;border-radius:2px;line-height:1.2}
+.price-wrap .now::before{content:"GIÁ BÁN: ";font-size:11px;font-weight:700;letter-spacing:.04em}
+.add-mini{background:#111;border-radius:2px;box-shadow:none}
+.add-mini:hover{transform:none;background:#000}
+
+/* ---- SALE BANNER (đếm ngược): trắng viền đen thanh lịch ---- */
+.salebanner{background:#fff;border:1px solid #111;border-radius:0;color:#111;box-shadow:none}
+.sb-flash{filter:none}
+.sb-t1{font-size:20px;letter-spacing:.14em;text-shadow:none;font-weight:700}
+.sb-t2{font-size:28px;color:#C81E1E;text-shadow:none;font-family:var(--serif);letter-spacing:.06em;font-weight:400}
+.sb-t3{background:#111;color:#fff;border-radius:2px;letter-spacing:.1em}
+.sb-mid{border:1px solid var(--line);border-radius:2px;box-shadow:none}
+.sb-disc{background:#111;border-radius:2px;box-shadow:none;transform:none;top:-10px;left:-1px}
+.sb-brand{color:#111;letter-spacing:.1em;text-transform:uppercase;font-size:12px}
+.sb-price .now{color:#2B3035;background:var(--hl);padding:2px 8px;border-radius:2px;font-size:18px}
+.sb-dots button{background:#D9D9D9}
+.sb-dots button.on{background:#111}
+.sb-end{color:#111;letter-spacing:.22em}
+.sb-num{background:#111;color:#fff;border-radius:2px}
+.sb-colon{color:#111}
+.sb-lbl{color:#555}
+.sb-limit{background:#F7F7F7;color:#111;border-radius:2px;border:1px solid var(--line)}
+
+/* ---- PROMO (band KOL): nền kem nhạt, chữ đen, serif ---- */
+.promo{background:#FAF7F2;color:#111}
+.promo::before{display:none}
+.promo-deco{display:none}
+.promo-kol{background:#fff;border:1px solid var(--line);color:#111;letter-spacing:.14em;text-transform:uppercase;font-size:11px}
+.promo h1{font-family:var(--serif);font-weight:400;text-shadow:none;font-size:34px;letter-spacing:.04em}
+.promo-brands{color:#C81E1E}
+.promo p{color:#555;opacity:1}
+.promo-perks span{background:#fff;border:1px solid var(--line);color:#333;border-radius:2px}
+.promo-card{border-radius:2px;transform:none;border:1px solid var(--line);box-shadow:var(--shadow)}
+.promo-card:hover{transform:translateY(-3px)}
+.promo-tag{background:#111;color:#fff;border:none;border-radius:2px;transform:none;box-shadow:none}
+.pc-price .now{color:#2B3035;background:var(--hl);padding:2px 7px;border-radius:2px;font-size:16px}
+
+/* ---- SALE SECTION / BRAND SECTION ---- */
+.sale-section{background:#fff}
+.sale-title{color:#111;font-weight:600;letter-spacing:.16em;text-transform:uppercase;font-size:20px}
+.sale-allbtn{color:#111}
+.brand-section:nth-of-type(even){background:#FAFAFA}
+.brand-chip{background:#111 !important;border-radius:2px;box-shadow:none;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:14px}
+
+/* ---- CHIPS / FILTER ---- */
+.chip{border-radius:2px;background:#F7F7F7}
+.chip.active{background:#111;color:#fff}
+.filters{border-radius:2px}
+.filters h3{color:#111}
+.price-presets button{border-radius:2px}
+.price-presets button.active{background:#111}
+.clear-filters{color:#C81E1E}
+.searchbar{border-radius:2px}
+.sort-select{border-radius:2px}
+.hrow-nav{color:#111;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.hrow::-webkit-scrollbar-thumb{background:#D9D9D9}
+
+/* ---- MODAL: giá kiểu Hannah ---- */
+.modal{border-radius:2px}
+.modal-close{border-radius:2px}
+.modal-info .cat{color:var(--muted);letter-spacing:.14em}
+.modal-price{background:#FFFBE6;border:1px solid #F1E3A6;border-radius:2px}
+.modal-price .now{color:#2B3035}
+.modal-price .save{background:#111;border-radius:2px}
+.modal-perks .mp{background:#F7F7F7;color:#333;border-radius:2px}
+.modal-thumbs button{border-radius:2px}
+.desc li::before{background:#111}
+.desc h4{color:#111}
+.qty{border-radius:2px}
+.qty button{color:#111}
+
+/* ---- CART DRAWER ---- */
+.cart-item .ci-price{color:#2B3035}
+.cart-item img{border-radius:2px}
+.drawer-foot{background:#FAFAFA}
+.drawer-foot .row.total .v{color:#111}
+.drawer-foot .save-note{background:var(--sand);color:#8a6d2f;border-radius:2px}
+.qty-mini{border-radius:2px}
+.qty-mini button{color:#111}
+.ci-remove:hover{color:#C81E1E;background:#FDF0F0}
+
+/* ---- CHECKOUT ---- */
+.co-card{border-radius:2px}
+.field input,.field textarea,.field select{border-radius:2px}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.pay-opt{border-radius:2px}
+.pay-opt:hover{border-color:#999;background:#FAFAFA}
+.pay-opt.active{border-color:#111;background:#FAFAFA;box-shadow:0 0 0 1px #111}
+.pay-opt.active .radio{border-color:#111}
+.pay-opt.active .radio::after{background:#111}
+.sum-item .si-price{color:#2B3035}
+.sum-rows .row.total .v{color:#111}
+.sum-item img{border-radius:2px}
+.success{border-radius:2px}
+.success .order-code{background:var(--hl);color:#2B3035;border-radius:2px}
+.qr-box{border:2px solid #111;border-radius:2px}
+.qr-status{background:#F7F7F7;color:#111;border-radius:2px}
+.qcopy{border-radius:2px;background:#F0F0F0;color:#111}
+.spin{border-color:#E2E2E2;border-top-color:#111}
+
+/* ---- PERK STRIP dưới hero (nếu dùng) ---- */
+.perk{border-radius:2px;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+.perk .ic,.hperk .hp-ic{background:#111 !important;border-radius:2px}
+.hperk{border-radius:2px;border:1px solid var(--line);box-shadow:none}
+.hp-txt b{color:#111}
+
+/* ---- CONTACT ---- */
+.contact-hero{background:#FAF7F2}
+.contact-hero h1{font-family:var(--serif);font-weight:400;letter-spacing:.04em}
+.contact-row .ic{background:#111 !important;border-radius:2px}
+.contact-card{border-radius:2px}
+
+/* ---- FOOTER: trắng, chữ đen, cột kiểu Hannah ---- */
+.footer{background:#fff;color:#555;border-top:1px solid var(--line);margin-top:40px}
+.footer h4{color:#111;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.footer .f-brand{color:#111;font-family:var(--serif);font-weight:400;letter-spacing:.14em;font-size:19px}
+.footer p{color:#666}
+.footer .f-link{color:#555}
+.footer .f-link:hover{color:#111}
+.footer .f-contact{color:#555}
+.footer .f-contact .ic{color:#111}
+.footer-bottom{border-top:1px solid var(--line);color:#8A8F98}
+
+/* ---- TOAST ---- */
+.toast{background:#111;border-radius:2px}
