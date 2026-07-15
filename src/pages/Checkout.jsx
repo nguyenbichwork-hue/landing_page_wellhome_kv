@@ -4,7 +4,7 @@ import { Icon } from '../components/Icons.jsx'
 import { useCart } from '../cart.jsx'
 import { formatVND, PLACEHOLDER } from '../utils.js'
 import { PROVINCES } from '../data/provinces.js'
-import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL, BANK } from '../config.js'
+import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL, BANK, CAMP_ORDER_ENDPOINT, getCampMeta } from '../config.js'
 
 const transferContent = (code) => (code || '').replace(/[^a-zA-Z0-9]/g, '')
 
@@ -233,6 +233,35 @@ export default function Checkout() {
       savings,
       total,
       source: 'khanhvan.wellhome.asia',
+    }
+
+    // Landing ĐA CAMPAIGN (15/07): trang /c/<slug> → đơn gửi THẲNG hệ Wellhome
+    // (edge landing-order) → rơi vào Xử lý đơn như đơn camp thường. Mã đơn server sinh.
+    const camp = getCampMeta()
+    if (camp && camp.slug) {
+      let res = null
+      try {
+        const r = await fetch(CAMP_ORDER_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug: camp.slug,
+            paymentCode: pay === 'BANK' ? 'bank' : 'cod',
+            customer: payload.customer,
+            items: payload.items.map((it) => ({ cmmf: it.cmmf || it.id, qty: it.qty })),
+          }),
+        })
+        res = await r.json()
+      } catch { res = null }
+      setSubmitting(false)
+      if (res && res.ok) {
+        setDone({ orderCode: res.orderCode, total: res.total || payload.total, name: f.name, payment: payload.payment, paymentCode: pay })
+        clear()
+      } else {
+        setFailed(true)
+        document.querySelector('.co-fail')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return
     }
 
     const res = await postOrder(payload)

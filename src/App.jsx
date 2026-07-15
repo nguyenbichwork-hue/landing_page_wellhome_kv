@@ -33,6 +33,8 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          {/* Landing ĐA CAMPAIGN (15/07): /c/<slug> — danh mục từ hệ Wellhome */}
+          <Route path="/c/:slug" element={<Home />} />
           <Route path="/lien-he" element={<Contact />} />
           <Route path="/thanh-toan" element={<Checkout />} />
           <Route path="*" element={<Home />} />

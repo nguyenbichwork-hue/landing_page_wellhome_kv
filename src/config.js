@@ -1,4 +1,23 @@
 // ====== CẤU HÌNH TRANG KOL ======
+// ---- Landing ĐA CAMPAIGN (15/07): /c/<slug> đọc danh mục + gửi đơn về hệ Wellhome ----
+export const SUPA = {
+  url: 'https://xjwijxfryiggaglpyffu.supabase.co',
+  anon: 'sb_publishable_k1Y_9_oR86Kx3LzmeAuosQ_4IJ9-Awj',
+}
+export const CAMP_ORDER_ENDPOINT = `${SUPA.url}/functions/v1/landing-order`
+// slug camp lấy từ URL /c/<slug>; lưu sessionStorage để trang thanh toán còn nhớ.
+export function campSlugFromPath(pathname) {
+  const m = String(pathname || '').match(/^\/c\/([a-z0-9-]{3,60})/)
+  return m ? m[1] : ''
+}
+export function saveCampMeta(meta) {
+  try { sessionStorage.setItem('wh.camp', JSON.stringify(meta || {})) } catch {}
+}
+export function getCampMeta() {
+  try { return JSON.parse(sessionStorage.getItem('wh.camp') || 'null') } catch { return null }
+}
+export function clearCampMeta() { try { sessionStorage.removeItem('wh.camp') } catch {} }
+
 // Thông tin KOL (subdomain khanhvan.wellhome.asia)
 export const KOL = {
   name: 'Khánh Vân',
