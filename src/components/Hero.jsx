@@ -2,7 +2,7 @@ import { Icon } from './Icons.jsx'
 import { WARRANTY } from '../config.js'
 import heroBanner from '../assets/hero-banner.jpg'
 
-export default function Hero({ products, goShop }) {
+export default function Hero({ products, goShop, camp }) {
   const perks = [
     { icon: 'star', big: `${products.length}+`, text: 'sản phẩm ưu đãi', c: 'p1' },
     { icon: 'shield', big: '', text: WARRANTY, c: 'p2' },
@@ -14,8 +14,10 @@ export default function Hero({ products, goShop }) {
     <section className="hero">
       <div className="wrap hero-inner">
         <div className="hero-copy">
-          <span className="hero-eyebrow"><span className="dot" /> CHÍNH HÃNG • GIÁ TỐT NHẤT</span>
-          <h1>Gia dụng chính hãng<br /><span className="grad">giá ưu đãi riêng cho bạn</span></h1>
+          <span className="hero-eyebrow"><span className="dot" /> {camp?.kol_name ? `✨ ${camp.kol_name.toUpperCase()} • CHÍNH HÃNG` : 'CHÍNH HÃNG • GIÁ TỐT NHẤT'}</span>
+          {camp
+            ? <h1>{camp.title}<br /><span className="grad">{camp.tagline || 'giá ưu đãi riêng cho bạn'}</span></h1>
+            : <h1>Gia dụng chính hãng<br /><span className="grad">giá ưu đãi riêng cho bạn</span></h1>}
           <p className="lead">
             Sản phẩm chính hãng 100% từ <b>Tefal – Bosch – Smeg</b>. Giao hàng & lắp đặt miễn phí,
             bảo hành linh hoạt 2–3 năm theo chính sách từng hãng.
@@ -35,7 +37,7 @@ export default function Hero({ products, goShop }) {
         </div>
 
         <div className="hero-banner-wrap">
-          <img className="hero-banner-img" src={heroBanner} alt="WellHome × Nguyễn Phạm Khánh Vân — Gia dụng chính hãng Tefal, Bosch, Smeg" />
+          <img className="hero-banner-img" src={camp?.hero_url || heroBanner} alt="WellHome × Nguyễn Phạm Khánh Vân — Gia dụng chính hãng Tefal, Bosch, Smeg" />
         </div>
       </div>
     </section>

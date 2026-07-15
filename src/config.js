@@ -12,6 +12,7 @@ export function campSlugFromPath(pathname) {
 }
 export function saveCampMeta(meta) {
   try { sessionStorage.setItem('wh.camp', JSON.stringify(meta || {})) } catch {}
+  try { window.dispatchEvent(new Event('wh-camp-meta')) } catch {}
 }
 export function getCampMeta() {
   try { return JSON.parse(sessionStorage.getItem('wh.camp') || 'null') } catch { return null }

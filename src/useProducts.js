@@ -45,6 +45,7 @@ export function useProducts() {
   const { pathname } = useLocation()
   const campSlug = campSlugFromPath(pathname)
   const [products, setProducts] = useState(campSlug ? [] : BUNDLED)
+  const [camp, setCamp] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -60,7 +61,9 @@ export function useProducts() {
       .then((d) => {
         if (!alive) return
         if (d && d.ok) {
-          saveCampMeta({ ...d.page, slug: campSlug })
+          const meta = { ...d.page, slug: campSlug }
+          saveCampMeta(meta)
+          setCamp(meta)
           setProducts((d.products || []).map(normalizeCamp))
         } else {
           setProducts([])
@@ -86,5 +89,5 @@ export function useProducts() {
     return () => { alive = false }
   }, [campSlug])
 
-  return { products, loading }
+  return { products, loading, camp }
 }

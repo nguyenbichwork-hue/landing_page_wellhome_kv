@@ -35,7 +35,7 @@ function HScroll({ products, onOpen }) {
 }
 
 export default function Home() {
-  const { products } = useProducts()
+  const { products, camp } = useProducts()
   const [modal, setModal] = useState(null)
 
   // bộ lọc cho khu "Tất cả sản phẩm"
@@ -107,7 +107,7 @@ export default function Home() {
   return (
     <>
       {/* ===== HERO (3 hãng) ===== */}
-      <Hero products={products} onOpen={setModal} goShop={goShop} />
+      <Hero products={products} onOpen={setModal} goShop={goShop} camp={camp} />
 
       {/* ===== BANNER SALE SỐC + ĐẾM NGƯỢC ===== */}
       <SaleBanner deals={dealProducts} onOpen={setModal} />
