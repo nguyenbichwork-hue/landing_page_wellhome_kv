@@ -7,6 +7,22 @@ import Home from './pages/Home.jsx'
 import Contact from './pages/Contact.jsx'
 import Checkout from './pages/Checkout.jsx'
 import Admin from './pages/Admin.jsx'
+import { getCampMeta, campSlugFromPath } from './config.js'
+
+// Tab title theo camp: "<tiêu đề camp> — Hannah Olala" (16/07 — bỏ Khánh Vân mặc định).
+function TitleSync() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    const apply = () => {
+      const m = campSlugFromPath(window.location.pathname) ? getCampMeta() : null
+      document.title = m?.title ? `${m.title} — Hannah Olala` : 'Hannah Olala — Ưu đãi chính hãng độc quyền'
+    }
+    apply()
+    window.addEventListener('wh-camp-meta', apply)
+    return () => window.removeEventListener('wh-camp-meta', apply)
+  }, [pathname])
+  return null
+}
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -31,6 +47,7 @@ export default function App() {
   return (
     <>
       <ScrollTop />
+      <TitleSync />
       <Header />
       <main>
         <Routes>

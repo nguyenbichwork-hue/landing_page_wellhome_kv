@@ -862,3 +862,25 @@ img{display:block;max-width:100%}
 
 /* ---- TOAST ---- */
 .toast{background:#111;border-radius:2px}
+
+/* ---- Ô MÃ GIẢM GIÁ checkout (16/07) ---- */
+.voucher-box{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+.voucher-row{display:flex;gap:8px}
+.voucher-row input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:2px;font-size:13px;
+  font-family:inherit;letter-spacing:.08em;text-transform:uppercase}
+.voucher-row input:focus{outline:none;border-color:#111}
+.voucher-row .btn{padding:9px 14px;font-size:11px}
+.voucher-ok{margin-top:8px;font-size:12.5px;color:var(--ok);font-weight:600;background:var(--mint);
+  padding:8px 10px;border-radius:2px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.voucher-ok button{font-size:11px;color:#C81E1E;font-weight:700;text-decoration:underline}
+.voucher-err{margin-top:8px;font-size:12.5px;color:#C81E1E;font-weight:600}
+
+/* danh sách mã KM đã duyệt của camp — khách bấm chọn (16/07) */
+.voucher-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.voucher-item{display:flex;align-items:center;gap:10px;border:1px dashed #C9C9C9;border-radius:2px;
+  padding:8px 10px;background:#FAFAFA;text-align:left;width:100%;transition:.15s}
+.voucher-item:hover{border-color:#111;background:#fff}
+.vi-code{font-weight:700;font-size:12px;letter-spacing:.08em;background:var(--hl);padding:3px 8px;border-radius:2px;flex:none}
+.vi-desc{font-size:11.5px;color:#555;flex:1;min-width:0}
+.vi-use{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:#111;
+  padding:5px 10px;border-radius:2px;flex:none}

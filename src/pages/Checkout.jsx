@@ -4,7 +4,7 @@ import { Icon } from '../components/Icons.jsx'
 import { useCart } from '../cart.jsx'
 import { formatVND, PLACEHOLDER } from '../utils.js'
 import { PROVINCES } from '../data/provinces.js'
-import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL, BANK, CAMP_ORDER_ENDPOINT, getCampMeta } from '../config.js'
+import { ORDER_ENDPOINT, KOL, COMPANY, ZALO_URL, BANK, CAMP_ORDER_ENDPOINT, SUPA, getCampMeta } from '../config.js'
 
 const transferContent = (code) => (code || '').replace(/[^a-zA-Z0-9]/g, '')
 
@@ -116,6 +116,63 @@ function genOrderCode() {
 
 export default function Checkout() {
   const { items, total, savings, clear } = useCart()
+  // 16/07 — MÃ GIẢM GIÁ (voucher brand đã được HO duyệt, kênh landing)
+  const [vcode, setVcode] = useState('')
+  const [voucher, setVoucher] = useState(null)   // {code, giam, msg}
+  const [vErr, setVErr] = useState('')
+  const [vBusy, setVBusy] = useState(false)
+  const campMeta = getCampMeta()
+  const applyVoucher = async () => {
+    if (!vcode.trim() || !campMeta?.slug) return
+    setVBusy(true); setVErr(''); setVoucher(null)
+    try {
+      const r = await fetch(`${SUPA.url}/rest/v1/rpc/landing_apply_voucher`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPA.anon, Authorization: `Bearer ${SUPA.anon}` },
+        body: JSON.stringify({
+          p_slug: campMeta.slug, p_code: vcode.trim(), p_sdt: '',
+          p_items: items.map((it) => ({ cmmf: it.cmmf || it.id, qty: it.qty, gia: it.price })),
+        }),
+      })
+      const d = await r.json()
+      if (d && d.ok) setVoucher(d)
+      else setVErr((d && d.msg) || 'Mã không hợp lệ')
+    } catch { setVErr('Không kiểm tra được mã — thử lại') }
+    setVBusy(false)
+  }
+  const giamVoucher = voucher ? Number(voucher.giam) || 0 : 0
+  const totalPay = Math.max(0, total - giamVoucher)
+  // Danh sách mã ĐÃ DUYỆT của camp này (HO duyệt xong tự hiện) — khách bấm chọn khỏi gõ
+  const [vList, setVList] = useState([])
+  useEffect(() => {
+    if (!campMeta?.slug) return undefined
+    let alive = true
+    fetch(`${SUPA.url}/rest/v1/rpc/landing_list_vouchers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPA.anon, Authorization: `Bearer ${SUPA.anon}` },
+      body: JSON.stringify({ p_slug: campMeta.slug }),
+    }).then((r) => r.json()).then((d) => { if (alive && Array.isArray(d)) setVList(d) }).catch(() => {})
+    return () => { alive = false }
+  }, [campMeta?.slug])
+  const pickVoucher = (code) => { setVcode(code); setVErr(''); setTimeout(applyVoucherWith, 0, code) }
+  const applyVoucherWith = async (code) => {
+    // như applyVoucher nhưng nhận mã trực tiếp (tránh chờ state)
+    setVBusy(true); setVErr(''); setVoucher(null)
+    try {
+      const r = await fetch(`${SUPA.url}/rest/v1/rpc/landing_apply_voucher`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPA.anon, Authorization: `Bearer ${SUPA.anon}` },
+        body: JSON.stringify({
+          p_slug: campMeta.slug, p_code: code, p_sdt: '',
+          p_items: items.map((it) => ({ cmmf: it.cmmf || it.id, qty: it.qty, gia: it.price })),
+        }),
+      })
+      const d = await r.json()
+      if (d && d.ok) setVoucher(d)
+      else setVErr((d && d.msg) || 'Mã không hợp lệ')
+    } catch { setVErr('Không kiểm tra được mã — thử lại') }
+    setVBusy(false)
+  }
   const navigate = useNavigate()
   const [f, setF] = useState({ name: '', phone: '', email: '', province: '', district: '', ward: '', street: '', note: '' })
   // Bản đồ địa chỉ Tỉnh -> Quận/Huyện -> Phường/Xã — tải động khi vào trang để không phình bundle chính (~174KB)
@@ -249,6 +306,7 @@ export default function Checkout() {
             paymentCode: pay === 'BANK' ? 'bank' : 'cod',
             customer: payload.customer,
             items: payload.items.map((it) => ({ cmmf: it.cmmf || it.id, qty: it.qty })),
+            voucher: voucher?.code || null,
           }),
         })
         res = await r.json()
@@ -319,7 +377,7 @@ export default function Checkout() {
       <div className="section-head" style={{ marginBottom: 24 }}>
         <div>
           <h2 style={{ fontSize: 28 }}>Thanh toán</h2>
-          <p>Hoàn tất thông tin để đặt hàng — đơn của bạn sẽ được KOL {KOL.name} ghi nhận riêng.</p>
+          <p>Hoàn tất thông tin để đặt hàng — đơn của bạn sẽ được KOL {campMeta?.kol_name || KOL.name} ghi nhận riêng.</p>
         </div>
         <Link to="/" style={{ color: 'var(--sky-600)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           ← Tiếp tục mua sắm
@@ -435,11 +493,44 @@ export default function Checkout() {
             ))}
           </div>
 
+          {campMeta?.slug && (
+            <div className="voucher-box">
+              <div className="voucher-row">
+                <input
+                  value={vcode}
+                  onChange={(e) => { setVcode(e.target.value.toUpperCase()); setVErr(''); }}
+                  placeholder="Mã giảm giá (nếu có)"
+                  onKeyDown={(e) => e.key === 'Enter' && applyVoucher()}
+                />
+                <button type="button" className="btn btn-ghost" onClick={applyVoucher} disabled={vBusy || !vcode.trim()}>
+                  {vBusy ? 'Đang kiểm tra…' : 'Áp dụng'}
+                </button>
+              </div>
+              {voucher && <div className="voucher-ok">✓ {voucher.msg} <button type="button" onClick={() => { setVoucher(null); setVcode(''); }}>Bỏ mã</button></div>}
+              {vErr && <div className="voucher-err">{vErr}</div>}
+              {vList.length > 0 && !voucher && (
+                <div className="voucher-list">
+                  {vList.map((v) => (
+                    <button type="button" key={v.code} className="voucher-item" onClick={() => pickVoucher(v.code)}>
+                      <span className="vi-code">{v.code}</span>
+                      <span className="vi-desc">
+                        Giảm {v.ptype === 'amount' ? `${formatVND(v.value)}` : `${v.value}%${v.max_giam ? ` (tối đa ${formatVND(v.max_giam)})` : ''}`}
+                        {v.min_order > 0 ? ` · đơn từ ${formatVND(v.min_order)}` : ''}
+                      </span>
+                      <span className="vi-use">Dùng</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="sum-rows">
             <div className="row"><span>Tạm tính</span><span>{formatVND(total)}</span></div>
             {savings > 0 && <div className="row" style={{ color: 'var(--ok)' }}><span>Tiết kiệm</span><span>-{formatVND(savings)}</span></div>}
+            {giamVoucher > 0 && <div className="row" style={{ color: 'var(--ok)' }}><span>Mã {voucher.code}</span><span>-{formatVND(giamVoucher)}</span></div>}
             <div className="row"><span>Phí vận chuyển</span><span style={{ color: 'var(--ok)', fontWeight: 600 }}>Miễn phí</span></div>
-            <div className="row total"><span>Tổng cộng</span><span className="v">{formatVND(total)}</span></div>
+            <div className="row total"><span>Tổng cộng</span><span className="v">{formatVND(totalPay)}</span></div>
           </div>
 
           {stockErr && (
